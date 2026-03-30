@@ -1,9 +1,11 @@
+# Bus Tracking and Management System
 
-  # Bus Tracking and Management System
+## Running the code
 
-  ## Running the code
+Run `npm i` to install the dependencies.
 
-  Run `npm i` to install the dependencies.
+Run `npm run dev` to start the development server.
 
-  Run `npm run dev` to start the development server.
-  
+## Authors
+
+- [Dexter O. Hermosura] (https://github.com/Ryuzaki16)

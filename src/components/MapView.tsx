@@ -1,65 +1,65 @@
-import { useEffect, useRef } from 'react';
-import { Bus, MapPin, Radio } from 'lucide-react';
-import { Bus as BusType } from '../types';
+import 'leaflet/dist/leaflet.css'
+import { useEffect, useRef } from 'react'
+import { Bus as BusType } from '../types'
 
 interface MapViewProps {
-  buses: BusType[];
-  selectedBus: BusType | null;
-  onBusSelect: (bus: BusType) => void;
-  height?: string;
+  buses: BusType[]
+  selectedBus: BusType | null
+  onBusSelect: (bus: BusType) => void
+  height?: string
 }
 
 export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: MapViewProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
-  const isInitializedRef = useRef(false);
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstanceRef = useRef<any>(null)
+  const markersRef = useRef<any[]>([])
+  const isInitializedRef = useRef(false)
 
   // Detect if mobile screen
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
 
   // Initialize map only once
   useEffect(() => {
     // Only initialize if window is defined (client-side) and not already initialized
-    if (typeof window === 'undefined' || !mapRef.current || isInitializedRef.current) return;
+    if (typeof window === 'undefined' || !mapRef.current || isInitializedRef.current) return
 
     // Add a small delay to ensure the DOM element is fully ready
     const timeoutId = setTimeout(() => {
-      if (!mapRef.current || isInitializedRef.current) return;
+      if (!mapRef.current || isInitializedRef.current) return
 
       // Dynamically import Leaflet only on client side
       import('leaflet').then((L) => {
-        if (!mapRef.current || isInitializedRef.current) return;
-        
+        if (!mapRef.current || isInitializedRef.current) return
+
         try {
           // Initialize map centered on the route
-          const map = L.map(mapRef.current).setView([14.3294, 121.0129], 11);
-          mapInstanceRef.current = map;
-          isInitializedRef.current = true;
+          const map = L.map(mapRef.current).setView([14.3294, 121.0129], 11)
+          mapInstanceRef.current = map
+          isInitializedRef.current = true
 
           // Add OpenStreetMap tiles
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             maxZoom: 19,
-          }).addTo(map);
+          }).addTo(map)
 
           // Define route points
           const routePoints: [number, number][] = [
             [14.3294, 121.0129], // Dasmariñas
-            [14.3500, 121.0200],
-            [14.3800, 121.0300],
-            [14.4100, 121.0400],
-            [14.4500, 121.0500], // Alabang
-          ];
+            [14.35, 121.02],
+            [14.38, 121.03],
+            [14.41, 121.04],
+            [14.45, 121.05], // Alabang
+          ]
 
           // Define intermediate stops with names
           const stops = [
             { position: [14.3294, 121.0129] as [number, number], name: 'Dasmariñas Terminal', type: 'start' },
-            { position: [14.3500, 121.0200] as [number, number], name: 'Salawag', type: 'stop' },
-            { position: [14.3800, 121.0300] as [number, number], name: 'Molino', type: 'stop' },
-            { position: [14.4100, 121.0400] as [number, number], name: 'Zapote', type: 'stop' },
-            { position: [14.4500, 121.0500] as [number, number], name: 'Alabang Terminal', type: 'end' },
-          ];
+            { position: [14.35, 121.02] as [number, number], name: 'Salawag', type: 'stop' },
+            { position: [14.38, 121.03] as [number, number], name: 'Molino', type: 'stop' },
+            { position: [14.41, 121.04] as [number, number], name: 'Zapote', type: 'stop' },
+            { position: [14.45, 121.05] as [number, number], name: 'Alabang Terminal', type: 'end' },
+          ]
 
           // Draw route base shadow (for depth effect)
           L.polyline(routePoints, {
@@ -68,7 +68,7 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
             opacity: 0.1,
             lineCap: 'round',
             lineJoin: 'round',
-          }).addTo(map);
+          }).addTo(map)
 
           // Draw route highlight line (background)
           L.polyline(routePoints, {
@@ -77,7 +77,7 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
             opacity: 0.9,
             lineCap: 'round',
             lineJoin: 'round',
-          }).addTo(map);
+          }).addTo(map)
 
           // Draw main route line with gradient effect
           L.polyline(routePoints, {
@@ -86,7 +86,7 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
             opacity: 0.95,
             lineCap: 'round',
             lineJoin: 'round',
-          }).addTo(map);
+          }).addTo(map)
 
           // Draw animated dashed line on top
           const animatedLine = L.polyline(routePoints, {
@@ -96,15 +96,15 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
             dashArray: '10, 10',
             lineCap: 'round',
             lineJoin: 'round',
-          }).addTo(map);
+          }).addTo(map)
 
           // Add intermediate stop markers
           stops.forEach((stop, index) => {
             if (stop.type === 'stop') {
               // Intermediate stop marker - smaller on mobile
-              const stopSize = isMobile ? 14 : 20;
-              const dotSize = isMobile ? 4 : 6;
-              
+              const stopSize = isMobile ? 14 : 20
+              const dotSize = isMobile ? 4 : 6
+
               const stopIcon = L.divIcon({
                 html: `
                   <div style="position: relative;">
@@ -116,12 +116,13 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
                 className: '',
                 iconSize: [stopSize, stopSize],
                 iconAnchor: [stopSize / 2, stopSize / 2],
-              });
-              
-              const marker = L.marker(stop.position, { icon: stopIcon }).addTo(map);
-              
+              })
+
+              const marker = L.marker(stop.position, { icon: stopIcon }).addTo(map)
+
               // Add popup for intermediate stops - much smaller on mobile
-              marker.bindPopup(`
+              marker.bindPopup(
+                `
                 <div style="font-family: system-ui; text-align: center; min-width: ${isMobile ? '70px' : '100px'};">
                   <div style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; padding: ${isMobile ? '4px 6px' : '6px 8px'}; margin: ${isMobile ? '-6px -6px 3px -6px' : '-8px -8px 4px -8px'}; border-radius: 4px 4px 0 0;">
                     <div style="font-weight: 600; font-size: ${isMobile ? '9px' : '11px'};">${stop.name}</div>
@@ -131,18 +132,20 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
                     ${isMobile ? '' : 'Intermediate Stop'}
                   </div>
                 </div>
-              `, { 
-                closeButton: false,
-                maxWidth: isMobile ? 100 : 150,
-                className: 'custom-popup-mobile'
-              });
+              `,
+                {
+                  closeButton: false,
+                  maxWidth: isMobile ? 100 : 150,
+                  className: 'custom-popup-mobile',
+                },
+              )
             }
-          });
+          })
 
           // Add start marker (Dasmariñas) - smaller on mobile
-          const startSize = isMobile ? 24 : 32;
-          const startIconSize = isMobile ? 12 : 16;
-          
+          const startSize = isMobile ? 24 : 32
+          const startIconSize = isMobile ? 12 : 16
+
           const startIcon = L.divIcon({
             html: `
               <div style="position: relative;">
@@ -157,17 +160,21 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
             className: '',
             iconSize: [startSize, startSize],
             iconAnchor: [startSize / 2, startSize],
-          });
-          
-          const startMarker = L.marker(routePoints[0], { icon: startIcon }).addTo(map);
-          
-          startMarker.bindPopup(`
+          })
+
+          const startMarker = L.marker(routePoints[0], { icon: startIcon }).addTo(map)
+
+          startMarker.bindPopup(
+            `
             <div style="font-family: system-ui; min-width: ${isMobile ? '100px' : '140px'};">
               <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: ${isMobile ? '5px 7px' : '8px 10px'}; margin: ${isMobile ? '-6px -6px 5px -6px' : '-8px -8px 8px -8px'}; border-radius: 4px 4px 0 0;">
                 <div style="font-weight: 600; font-size: ${isMobile ? '10px' : '12px'}; margin-bottom: ${isMobile ? '1px' : '2px'};">${isMobile ? 'Dasmariñas' : 'Dasmariñas Terminal'}</div>
                 <div style="font-size: ${isMobile ? '8px' : '10px'}; opacity: 0.9;">Start</div>
               </div>
-              ${isMobile ? '' : `
+              ${
+                isMobile
+                  ? ''
+                  : `
               <div style="padding: 0 4px; color: #6b7280; font-size: 10px;">
                 <div style="margin-bottom: 4px;">First stop of the route</div>
                 <div style="display: flex; align-items: center; gap: 4px; color: #10b981; font-size: 9px;">
@@ -177,9 +184,12 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
                   <span>Origin</span>
                 </div>
               </div>
-              `}
+              `
+              }
             </div>
-          `, { closeButton: false, maxWidth: isMobile ? 130 : 180 });
+          `,
+            { closeButton: false, maxWidth: isMobile ? 130 : 180 },
+          )
 
           // Add end marker (Alabang) - smaller on mobile
           const endIcon = L.divIcon({
@@ -196,17 +206,21 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
             className: '',
             iconSize: [startSize, startSize],
             iconAnchor: [startSize / 2, startSize],
-          });
-          
-          const endMarker = L.marker(routePoints[routePoints.length - 1], { icon: endIcon }).addTo(map);
-          
-          endMarker.bindPopup(`
+          })
+
+          const endMarker = L.marker(routePoints[routePoints.length - 1], { icon: endIcon }).addTo(map)
+
+          endMarker.bindPopup(
+            `
             <div style="font-family: system-ui; min-width: ${isMobile ? '100px' : '140px'};">
               <div style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: ${isMobile ? '5px 7px' : '8px 10px'}; margin: ${isMobile ? '-6px -6px 5px -6px' : '-8px -8px 8px -8px'}; border-radius: 4px 4px 0 0;">
                 <div style="font-weight: 600; font-size: ${isMobile ? '10px' : '12px'}; margin-bottom: ${isMobile ? '1px' : '2px'};">${isMobile ? 'Alabang' : 'Alabang Terminal'}</div>
                 <div style="font-size: ${isMobile ? '8px' : '10px'}; opacity: 0.9;">End</div>
               </div>
-              ${isMobile ? '' : `
+              ${
+                isMobile
+                  ? ''
+                  : `
               <div style="padding: 0 4px; color: #6b7280; font-size: 10px;">
                 <div style="margin-bottom: 4px;">Last stop of the route</div>
                 <div style="display: flex; align-items: center; gap: 4px; color: #ef4444; font-size: 9px;">
@@ -216,50 +230,55 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
                   <span>Destination</span>
                 </div>
               </div>
-              `}
+              `
+              }
             </div>
-          `, { closeButton: false, maxWidth: isMobile ? 130 : 180 });
+          `,
+            { closeButton: false, maxWidth: isMobile ? 130 : 180 },
+          )
         } catch (error) {
-          console.error('Error initializing map:', error);
+          console.error('Error initializing map:', error)
         }
-      });
-    }, 100); // 100ms delay
+      })
+    }, 100) // 100ms delay
 
     // Cleanup only when component unmounts
     return () => {
-      clearTimeout(timeoutId);
+      clearTimeout(timeoutId)
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-        isInitializedRef.current = false;
+        mapInstanceRef.current.remove()
+        mapInstanceRef.current = null
+        isInitializedRef.current = false
       }
-    };
-  }, []); // Empty dependency array - only run once
+    }
+  }, []) // Empty dependency array - only run once
 
   // Update bus markers separately when bus data changes
   useEffect(() => {
-    if (!mapInstanceRef.current || typeof window === 'undefined') return;
+    if (!mapInstanceRef.current || typeof window === 'undefined') return
 
     import('leaflet').then((L) => {
       // Clear existing bus markers
-      markersRef.current.forEach(marker => marker.remove());
-      markersRef.current = [];
+      markersRef.current.forEach((marker) => marker.remove())
+      markersRef.current = []
 
       // Add bus markers
-      buses.filter(bus => bus.status === 'active').forEach((bus) => {
-        const isSelected = selectedBus?.id === bus.id;
-        const occupancyPercent = (bus.currentPassengers / bus.maxCapacity) * 100;
-        const colorClass = occupancyPercent < 50 ? '#10b981' : occupancyPercent < 80 ? '#f59e0b' : '#ef4444';
+      buses
+        .filter((bus) => bus.status === 'active')
+        .forEach((bus) => {
+          const isSelected = selectedBus?.id === bus.id
+          const occupancyPercent = (bus.currentPassengers / bus.maxCapacity) * 100
+          const colorClass = occupancyPercent < 50 ? '#10b981' : occupancyPercent < 80 ? '#f59e0b' : '#ef4444'
 
-        // Mobile sizes
-        const busNormalSize = isMobile ? 28 : 36;
-        const busSelectedSize = isMobile ? 34 : 44;
-        const busIconSize = isMobile ? (isSelected ? 16 : 14) : (isSelected ? 22 : 18);
-        const gpsBadgeSize = isMobile ? 12 : 16;
-        const gpsBadgeIconSize = isMobile ? 7 : 10;
+          // Mobile sizes
+          const busNormalSize = isMobile ? 28 : 36
+          const busSelectedSize = isMobile ? 34 : 44
+          const busIconSize = isMobile ? (isSelected ? 16 : 14) : isSelected ? 22 : 18
+          const gpsBadgeSize = isMobile ? 12 : 16
+          const gpsBadgeIconSize = isMobile ? 7 : 10
 
-        const busIcon = L.divIcon({
-          html: `
+          const busIcon = L.divIcon({
+            html: `
             <div style="position: relative; cursor: pointer;">
               <div style="width: ${isSelected ? busSelectedSize : busNormalSize}px; height: ${isSelected ? busSelectedSize : busNormalSize}px; background: linear-gradient(135deg, ${isSelected ? '#6366f1, #3b82f6' : '#1f2937, #111827'}); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); border: ${isMobile ? '2px' : '3px'} solid white; transition: all 0.3s;">
                 <svg width="${busIconSize}" height="${busIconSize}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -277,9 +296,13 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
                   <line x1="12" y1="2" x2="9" y2="5"></line>
                 </svg>
               </div>
-              ${isSelected ? `
+              ${
+                isSelected
+                  ? `
                 <div style="position: absolute; inset: -${isMobile ? '6px' : '8px'}; border-radius: 50%; background: rgba(99, 102, 241, 0.3); animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
             <style>
               @keyframes ping {
@@ -290,17 +313,21 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
               }
             </style>
           `,
-          className: '',
-          iconSize: [isSelected ? busSelectedSize : busNormalSize, isSelected ? busSelectedSize : busNormalSize],
-          iconAnchor: [(isSelected ? busSelectedSize : busNormalSize) / 2, (isSelected ? busSelectedSize : busNormalSize) / 2],
-        });
+            className: '',
+            iconSize: [isSelected ? busSelectedSize : busNormalSize, isSelected ? busSelectedSize : busNormalSize],
+            iconAnchor: [
+              (isSelected ? busSelectedSize : busNormalSize) / 2,
+              (isSelected ? busSelectedSize : busNormalSize) / 2,
+            ],
+          })
 
-        const marker = L.marker([bus.location.lat, bus.location.lng], { icon: busIcon })
-          .addTo(mapInstanceRef.current)
-          .on('click', () => onBusSelect(bus));
+          const marker = L.marker([bus.location.lat, bus.location.lng], { icon: busIcon })
+            .addTo(mapInstanceRef.current)
+            .on('click', () => onBusSelect(bus))
 
-        // Add popup with bus info - Much smaller on mobile
-        marker.bindPopup(`
+          // Add popup with bus info - Much smaller on mobile
+          marker.bindPopup(
+            `
           <div style="font-family: system-ui; min-width: ${isMobile ? '120px' : '160px'};">
             <div style="background: linear-gradient(135deg, #6366f1, #3b82f6); color: white; padding: ${isMobile ? '5px 7px' : '8px 10px'}; margin: ${isMobile ? '-6px -6px 5px -6px' : '-8px -8px 8px -8px'}; border-radius: 4px 4px 0 0;">
               <div style="font-weight: 600; font-size: ${isMobile ? '10px' : '13px'}; margin-bottom: ${isMobile ? '1px' : '2px'};">${bus.plateNumber}</div>
@@ -329,24 +356,26 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
               </div>
             </div>
           </div>
-        `, {
-          maxWidth: isMobile ? 150 : 200,
-          className: 'custom-popup'
-        });
+        `,
+            {
+              maxWidth: isMobile ? 150 : 200,
+              className: 'custom-popup',
+            },
+          )
 
-        if (isSelected) {
-          marker.openPopup();
-        }
+          if (isSelected) {
+            marker.openPopup()
+          }
 
-        markersRef.current.push(marker);
-      });
-    });
-  }, [buses, selectedBus, onBusSelect]); // Only update markers when these change
+          markersRef.current.push(marker)
+        })
+    })
+  }, [buses, selectedBus, onBusSelect]) // Only update markers when these change
 
   return (
     <div style={{ position: 'relative', width: '100%', height }}>
       <div ref={mapRef} style={{ width: '100%', height: '100%', borderRadius: '0.5rem' }} />
-      
+
       {/* Live indicator overlay */}
       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-red-500 text-white px-2 py-1.5 sm:px-4 sm:py-2 rounded-full flex items-center gap-1.5 sm:gap-2 shadow-lg z-[1000]">
         <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
@@ -418,5 +447,5 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px' }: M
         }
       `}</style>
     </div>
-  );
+  )
 }
