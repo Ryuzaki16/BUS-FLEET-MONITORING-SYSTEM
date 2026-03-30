@@ -9,3 +9,4 @@ Run `npm run dev` to start the development server.
 ## Authors
 
 - [Dexter O. Hermosura] (https://github.com/Ryuzaki16)
+- [Emil Jake L. Aringo] (https://github.com/kalix-pdf)
