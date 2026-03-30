@@ -1,10 +1,31 @@
-import { useState, useEffect } from 'react';
-import { Bus, Users, Ticket, CheckCircle, Clock, MapPin, Minus, Plus, Package, X, Camera, AlertTriangle, AlertOctagon, Info } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { tripAPI, passengerAPI, busAPI, lostItemAPI } from '../utils/api';
-import { toast } from 'sonner';
+import {
+  AlertOctagon,
+  AlertTriangle,
+  Bus,
+  Camera,
+  CheckCircle,
+  Clock,
+  MapPin,
+  Minus,
+  Package,
+  Plus,
+  Ticket,
+  Users,
+  X,
+} from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { busAPI, lostItemAPI, passengerAPI, tripAPI } from '../utils/api'
 
 interface Passenger {
+  id: string
+  ticketNumber: string
+  boardingPoint: string
+  destination: string
+  fare: number
+  timestamp: Date | string
+  paymentMethod: 'cash' | 'digital'
   id: string;
   ticketNumber: string;
   boardingPoint: string;
@@ -15,18 +36,22 @@ interface Passenger {
 }
 
 export function ConductorPortal() {
-  const [tripActive, setTripActive] = useState(false);
-  const [currentTripId, setCurrentTripId] = useState<string | null>(null);
-  const [passengers, setPassengers] = useState<Passenger[]>([]);
-  const [showTicketForm, setShowTicketForm] = useState(false);
-  const [showLostItemForm, setShowLostItemForm] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<'on-time' | 'delayed' | 'emergency' | 'stopped'>('on-time');
-  const [statusMessage, setStatusMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [tripActive, setTripActive] = useState(false)
+  const [currentTripId, setCurrentTripId] = useState<string | null>(null)
+  const [passengers, setPassengers] = useState<Passenger[]>([])
+  const [showTicketForm, setShowTicketForm] = useState(false)
+  const [showLostItemForm, setShowLostItemForm] = useState(false)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
+  const [showStatusModal, setShowStatusModal] = useState(false)
+  const [currentStatus, setCurrentStatus] = useState<'on-time' | 'delayed' | 'emergency' | 'stopped'>('on-time')
+  const [statusMessage, setStatusMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   // Ticket form state
+  const [boardingPoint, setBoardingPoint] = useState('Dasmariñas')
+  const [destination, setDestination] = useState('Alabang')
+  const [fare, setFare] = useState(45)
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'digital'>('cash')
   const [boardingPoint, setBoardingPoint] = useState('Dasmariñas');
   const [destination, setDestination] = useState('Alabang');
   const [fare, setFare] = useState(45);
@@ -37,129 +62,139 @@ export function ConductorPortal() {
     description: '',
     category: 'other',
     location: '',
-  });
+  })
 
   const busInfo = {
     id: 'bus1',
     plateNumber: 'ABC 1234',
     route: 'Dasmariñas - Alabang',
     driver: 'Juan Dela Cruz',
-    capacity: 18
-  };
+    capacity: 18,
+  }
 
   useEffect(() => {
     // Check if there's an active trip for this bus
-    loadActiveTrip();
-  }, []);
+    loadActiveTrip()
+  }, [])
 
   const loadActiveTrip = async () => {
     try {
-      const response = await tripAPI.getOngoing();
-      const activeTrip = response.data.find((trip: any) => trip.busId === busInfo.id);
-      
+      const response = await tripAPI.getOngoing()
+      const activeTrip = response.data.find((trip: any) => trip.busId === busInfo.id)
+
       if (activeTrip) {
-        setTripActive(true);
-        setCurrentTripId(activeTrip.id);
-        
+        setTripActive(true)
+        setCurrentTripId(activeTrip.id)
+
         // Load passengers for this trip
-        const passengersResponse = await passengerAPI.getByTrip(activeTrip.id);
-        setPassengers(passengersResponse.data.map((p: any) => ({
-          ...p,
-          timestamp: new Date(p.timestamp)
-        })));
+        const passengersResponse = await passengerAPI.getByTrip(activeTrip.id)
+        setPassengers(
+          passengersResponse.data.map((p: any) => ({
+            ...p,
+            timestamp: new Date(p.timestamp),
+          })),
+        )
       }
     } catch (error) {
-      console.error('Error loading active trip:', error);
+      console.error('Error loading active trip:', error)
     }
-  };
+  }
 
   const handleStartTrip = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const tripId = `trip_${Date.now()}`;
+      const tripId = `trip_${Date.now()}`
       const response = await tripAPI.create({
         id: tripId,
         busId: busInfo.id,
         busPlateNumber: busInfo.plateNumber,
         driver: busInfo.driver,
         route: busInfo.route,
-      });
+      })
 
-      setTripActive(true);
-      setCurrentTripId(tripId);
-      setPassengers([]);
-      toast.success('Trip started successfully!');
+      setTripActive(true)
+      setCurrentTripId(tripId)
+      setPassengers([])
+      toast.success('Trip started successfully!')
     } catch (error) {
-      console.error('Error starting trip:', error);
-      toast.error('Failed to start trip. Please try again.');
+      console.error('Error starting trip:', error)
+      toast.error('Failed to start trip. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleEndTrip = async () => {
-    if (!currentTripId) return;
-    
-    setIsLoading(true);
+    if (!currentTripId) return
+
+    setIsLoading(true)
     try {
-      await tripAPI.end(currentTripId);
-      setTripActive(false);
-      setCurrentTripId(null);
-      setPassengers([]);
-      toast.success('Trip ended successfully!');
+      await tripAPI.end(currentTripId)
+      setTripActive(false)
+      setCurrentTripId(null)
+      setPassengers([])
+      toast.success('Trip ended successfully!')
     } catch (error) {
-      console.error('Error ending trip:', error);
-      toast.error('Failed to end trip. Please try again.');
+      console.error('Error ending trip:', error)
+      toast.error('Failed to end trip. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleUpdateStatus = async (status: 'on-time' | 'delayed' | 'emergency' | 'stopped', message: string = '') => {
-    setCurrentStatus(status);
-    setStatusMessage(message);
-    setShowStatusModal(false);
-    
+    setCurrentStatus(status)
+    setStatusMessage(message)
+    setShowStatusModal(false)
+
     try {
       await busAPI.setAlert(busInfo.id, {
         status,
         message,
         plateNumber: busInfo.plateNumber,
-        route: busInfo.route
-      });
-      
-      setShowSuccessToast(true);
-      setTimeout(() => setShowSuccessToast(false), 3000);
-      toast.success('Status updated successfully!');
+        route: busInfo.route,
+      })
+
+      setShowSuccessToast(true)
+      setTimeout(() => setShowSuccessToast(false), 3000)
+      toast.success('Status updated successfully!')
     } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error('Failed to update status.');
+      console.error('Error updating status:', error)
+      toast.error('Failed to update status.')
     }
-  };
+  }
 
   const commonRoutes = [
     { from: 'Dasmariñas', to: 'Alabang', fare: 45 },
     { from: 'Dasmariñas', to: 'Zapote', fare: 35 },
     { from: 'Dasmariñas', to: 'Sucat', fare: 40 },
     { from: 'Zapote', to: 'Alabang', fare: 25 },
-    { from: 'Sucat', to: 'Alabang', fare: 15 }
-  ];
+    { from: 'Sucat', to: 'Alabang', fare: 15 },
+  ]
 
   const issueTicket = async () => {
     if (!currentTripId) {
-      toast.error('No active trip. Please start a trip first.');
-      return;
+      toast.error('No active trip. Please start a trip first.')
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const passengerId = `TKT-${Date.now()}`;
-      const newPassenger = {
+      const passengerId = `TKT-${Date.now()}`
+      const newPassenger: Omit<Passenger, 'timestamp'> = {
         id: passengerId,
         ticketNumber: `${Math.floor(100000 + Math.random() * 900000)}`,
         boardingPoint,
         destination,
         fare,
+        paymentMethod: 'cash',
+      }
+
+      await passengerAPI.add(currentTripId, newPassenger)
+
+      setPassengers([...passengers, { ...newPassenger, timestamp: new Date() }])
+      setShowTicketForm(false)
+
         paymentMethod: "cash"
       };
 
@@ -169,74 +204,70 @@ export function ConductorPortal() {
       setShowTicketForm(false);
       
       // Reset form
-      setBoardingPoint('Dasmariñas');
-      setDestination('Alabang');
-      setFare(45);
-      
-      toast.success('Ticket issued successfully!');
+      setBoardingPoint('Dasmariñas')
+      setDestination('Alabang')
+      setFare(45)
+
+      toast.success('Ticket issued successfully!')
     } catch (error) {
-      console.error('Error issuing ticket:', error);
-      toast.error('Failed to issue ticket. Please try again.');
+      console.error('Error issuing ticket:', error)
+      toast.error('Failed to issue ticket. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const removePassenger = async (id: string) => {
-    if (!currentTripId) return;
-    
-    setIsLoading(true);
+    if (!currentTripId) return
+
+    setIsLoading(true)
     try {
-      await passengerAPI.remove(currentTripId, id);
-      setPassengers(passengers.filter(p => p.id !== id));
-      toast.success('Passenger removed successfully!');
+      await passengerAPI.remove(currentTripId, id)
+      setPassengers(passengers.filter((p) => p.id !== id))
+      toast.success('Passenger removed successfully!')
     } catch (error) {
-      console.error('Error removing passenger:', error);
-      toast.error('Failed to remove passenger.');
+      console.error('Error removing passenger:', error)
+      toast.error('Failed to remove passenger.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleReportItem = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const itemId = `lf_${Date.now()}`;
+      const itemId = `lf_${Date.now()}`
       await lostItemAPI.create({
         id: itemId,
         ...lostItem,
         busPlateNumber: busInfo.plateNumber,
         route: busInfo.route,
         foundBy: busInfo.driver,
-      });
+      })
 
-      setShowLostItemForm(false);
-      setShowSuccessToast(true);
+      setShowLostItemForm(false)
+      setShowSuccessToast(true)
       setLostItem({
         itemName: '',
         description: '',
         category: 'other',
         location: '',
-      });
-      setTimeout(() => setShowSuccessToast(false), 3000);
-      toast.success('Lost item reported successfully!');
+      })
+      setTimeout(() => setShowSuccessToast(false), 3000)
+      toast.success('Lost item reported successfully!')
     } catch (error) {
-      console.error('Error reporting lost item:', error);
-      toast.error('Failed to report lost item. Please try again.');
+      console.error('Error reporting lost item:', error)
+      toast.error('Failed to report lost item. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-3 sm:p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 md:mb-6"
-        >
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
           <h2 className="text-gray-900 mb-1 md:mb-2">Conductor Dashboard</h2>
           <p className="text-gray-600 text-sm md:text-base">Issue tickets and manage your trip</p>
         </motion.div>
@@ -258,7 +289,9 @@ export function ConductorPortal() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-2 md:mt-3">
                   <div className="flex items-center gap-2 text-indigo-100 text-sm sm:text-base">
                     <Users className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                    <span>{passengers.length}/{busInfo.capacity} passengers</span>
+                    <span>
+                      {passengers.length}/{busInfo.capacity} passengers
+                    </span>
                   </div>
                   {tripActive && (
                     <div className="flex items-center gap-2 px-2 sm:px-3 py-1 bg-white/20 rounded-full">
@@ -269,9 +302,9 @@ export function ConductorPortal() {
                 </div>
               </div>
             </div>
-            
+
             <button
-              onClick={() => tripActive ? handleEndTrip() : handleStartTrip()}
+              onClick={() => (tripActive ? handleEndTrip() : handleStartTrip())}
               className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 sm:gap-3 text-base sm:text-lg w-full sm:w-auto ${
                 tripActive
                   ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg'
@@ -341,21 +374,23 @@ export function ConductorPortal() {
                 transition={{ delay: 0.2 }}
                 onClick={() => setShowStatusModal(true)}
                 className={`w-full rounded-2xl p-5 sm:p-6 md:p-8 shadow-xl border transition-all active:scale-[0.98] sm:hover:scale-[1.02] group ${
-                  currentStatus === 'on-time' 
-                    ? 'bg-white text-indigo-900 border-indigo-100 hover:border-indigo-300' 
+                  currentStatus === 'on-time'
+                    ? 'bg-white text-indigo-900 border-indigo-100 hover:border-indigo-300'
                     : currentStatus === 'emergency'
-                    ? 'bg-red-500 text-white border-red-400'
-                    : 'bg-amber-100 text-amber-900 border-amber-200'
+                      ? 'bg-red-500 text-white border-red-400'
+                      : 'bg-amber-100 text-amber-900 border-amber-200'
                 }`}
               >
                 <div className="flex flex-col items-center justify-center gap-2 h-full">
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors ${
-                    currentStatus === 'on-time' 
-                      ? 'bg-indigo-100 group-hover:bg-indigo-200 text-indigo-600'
-                      : currentStatus === 'emergency'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-amber-200 text-amber-800'
-                  }`}>
+                  <div
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-colors ${
+                      currentStatus === 'on-time'
+                        ? 'bg-indigo-100 group-hover:bg-indigo-200 text-indigo-600'
+                        : currentStatus === 'emergency'
+                          ? 'bg-white/20 text-white'
+                          : 'bg-amber-200 text-amber-800'
+                    }`}
+                  >
                     {currentStatus === 'emergency' ? (
                       <AlertOctagon className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
                     ) : currentStatus === 'delayed' ? (
@@ -365,10 +400,16 @@ export function ConductorPortal() {
                     )}
                   </div>
                   <div className="text-center">
-                    <h3 className={`text-base sm:text-lg font-semibold ${currentStatus === 'emergency' ? 'text-white' : 'text-indigo-900'}`}>
-                      {currentStatus === 'on-time' ? 'Report Issue' : currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
+                    <h3
+                      className={`text-base sm:text-lg font-semibold ${currentStatus === 'emergency' ? 'text-white' : 'text-indigo-900'}`}
+                    >
+                      {currentStatus === 'on-time'
+                        ? 'Report Issue'
+                        : currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
                     </h3>
-                    <p className={`text-xs sm:text-sm ${currentStatus === 'emergency' ? 'text-red-100' : 'text-indigo-400'}`}>
+                    <p
+                      className={`text-xs sm:text-sm ${currentStatus === 'emergency' ? 'text-red-100' : 'text-indigo-400'}`}
+                    >
                       {currentStatus === 'on-time' ? 'Delay or Emergency' : 'Tap to update'}
                     </p>
                   </div>
@@ -387,13 +428,15 @@ export function ConductorPortal() {
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="text-gray-900 text-base sm:text-lg md:text-xl">Current Passengers</h3>
                   <div className="flex items-center gap-4">
-                    <div className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-sm sm:text-base ${
-                      passengers.length >= busInfo.capacity 
-                        ? 'bg-red-100 text-red-700' 
-                        : passengers.length >= busInfo.capacity * 0.8
-                        ? 'bg-orange-100 text-orange-700'
-                        : 'bg-green-100 text-green-700'
-                    }`}>
+                    <div
+                      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-sm sm:text-base ${
+                        passengers.length >= busInfo.capacity
+                          ? 'bg-red-100 text-red-700'
+                          : passengers.length >= busInfo.capacity * 0.8
+                            ? 'bg-orange-100 text-orange-700'
+                            : 'bg-green-100 text-green-700'
+                      }`}
+                    >
                       {passengers.length} / {busInfo.capacity}
                     </div>
                   </div>
@@ -405,7 +448,9 @@ export function ConductorPortal() {
                   <div className="p-8 sm:p-12 md:p-16 text-center">
                     <Users className="w-16 h-16 sm:w-20 sm:h-20 text-gray-300 mx-auto mb-3 sm:mb-4" />
                     <h4 className="text-gray-900 mb-1 sm:mb-2 text-base sm:text-lg">No passengers yet</h4>
-                    <p className="text-gray-500 mb-4 sm:mb-6 text-sm sm:text-base">Click "Issue New Ticket" to add your first passenger</p>
+                    <p className="text-gray-500 mb-4 sm:mb-6 text-sm sm:text-base">
+                      Click "Issue New Ticket" to add your first passenger
+                    </p>
                     <button
                       onClick={() => setShowTicketForm(true)}
                       className="px-5 sm:px-6 py-2.5 sm:py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all text-sm sm:text-base"
@@ -450,16 +495,20 @@ export function ConductorPortal() {
                                 <span className="text-gray-900">₱{passenger.fare}</span>
                               </td>
                               <td className="py-4 px-6">
-                                <span className={`px-3 py-1 rounded-full text-sm ${
-                                  passenger.paymentMethod === 'cash'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-purple-100 text-purple-700'
-                                }`}>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-sm ${
+                                    passenger.paymentMethod === 'cash'
+                                      ? 'bg-green-100 text-green-700'
+                                      : 'bg-purple-100 text-purple-700'
+                                  }`}
+                                >
                                   {passenger.paymentMethod === 'cash' ? 'Cash' : 'Digital'}
                                 </span>
                               </td>
                               <td className="py-4 px-6 text-gray-600">
-                                {typeof passenger.timestamp === 'string' ? passenger.timestamp : passenger.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {typeof passenger.timestamp === 'string'
+                                  ? passenger.timestamp
+                                  : passenger.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </td>
                               <td className="py-4 px-6">
                                 <button
@@ -497,11 +546,13 @@ export function ConductorPortal() {
                               <Minus className="w-4 h-4" />
                             </button>
                           </div>
-                          
+
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="text-gray-500">Route:</span>
-                              <span className="text-gray-900">{passenger.boardingPoint} → {passenger.destination}</span>
+                              <span className="text-gray-900">
+                                {passenger.boardingPoint} → {passenger.destination}
+                              </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-500">Fare:</span>
@@ -509,17 +560,23 @@ export function ConductorPortal() {
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-gray-500">Payment:</span>
-                              <span className={`px-2.5 py-0.5 rounded-full text-xs ${
-                                passenger.paymentMethod === 'cash'
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-purple-100 text-purple-700'
-                              }`}>
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-xs ${
+                                  passenger.paymentMethod === 'cash'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-purple-100 text-purple-700'
+                                }`}
+                              >
                                 {passenger.paymentMethod === 'cash' ? 'Cash' : 'Digital'}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-500">Time:</span>
-                              <span className="text-gray-600">{typeof passenger.timestamp === 'string' ? passenger.timestamp : passenger.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              <span className="text-gray-600">
+                                {typeof passenger.timestamp === 'string'
+                                  ? passenger.timestamp
+                                  : passenger.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
                             </div>
                           </div>
                         </motion.div>
@@ -538,14 +595,16 @@ export function ConductorPortal() {
           >
             <MapPin className="w-20 h-20 sm:w-24 sm:h-24 text-indigo-300 mx-auto mb-4 sm:mb-6" />
             <h3 className="text-gray-900 text-xl sm:text-2xl mb-2 sm:mb-3">Ready to Start Your Trip?</h3>
-            <p className="text-gray-600 text-base sm:text-lg mb-6 sm:mb-8">Click "Start Trip" above to begin accepting passengers</p>
+            <p className="text-gray-600 text-base sm:text-lg mb-6 sm:mb-8">
+              Click "Start Trip" above to begin accepting passengers
+            </p>
             <button
               onClick={() => handleStartTrip()}
               className="px-8 sm:px-10 py-3 sm:py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:shadow-2xl transition-all text-base sm:text-lg"
             >
               Start Trip Now
             </button>
-            
+
             <button
               onClick={() => setShowLostItemForm(true)}
               className="mt-6 text-indigo-600 font-medium flex items-center gap-2 mx-auto hover:text-indigo-800 transition-colors px-4 py-2 rounded-lg hover:bg-indigo-50"
@@ -597,9 +656,9 @@ export function ConductorPortal() {
                       <button
                         key={index}
                         onClick={() => {
-                          setBoardingPoint(route.from);
-                          setDestination(route.to);
-                          setFare(route.fare);
+                          setBoardingPoint(route.from)
+                          setDestination(route.to)
+                          setFare(route.fare)
                         }}
                         className={`p-3 sm:p-4 rounded-xl border-2 transition-all text-left ${
                           boardingPoint === route.from && destination === route.to
@@ -646,7 +705,9 @@ export function ConductorPortal() {
                 <div>
                   <label className="block text-gray-700 mb-2 text-sm sm:text-base">Fare Amount</label>
                   <div className="relative">
-                    <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500 text-base sm:text-lg">₱</span>
+                    <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500 text-base sm:text-lg">
+                      ₱
+                    </span>
                     <input
                       type="number"
                       value={fare}
@@ -885,7 +946,7 @@ export function ConductorPortal() {
                     </div>
                   </button>
                 </div>
-                
+
                 {currentStatus !== 'on-time' && (
                   <div className="mt-4">
                     <label className="block text-gray-700 text-sm font-medium mb-2">Additional Details</label>
@@ -927,5 +988,5 @@ export function ConductorPortal() {
         )}
       </AnimatePresence>
     </div>
-  );
+  )
 }

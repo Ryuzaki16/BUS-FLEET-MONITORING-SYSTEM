@@ -1,12 +1,33 @@
-import { useState, useEffect } from 'react';
-import { Bus, Users, MapPin, Clock, Navigation, CheckCircle, AlertCircle, TrendingUp, ArrowLeft, AlertTriangle, AlertOctagon, Info } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import type { Bus as BusType } from '../types';
-import { MapView } from './MapView';
-import { busAPI, tripAPI, passengerAPI } from '../utils/api';
-import { toast } from 'sonner';
+import {
+  AlertCircle,
+  AlertOctagon,
+  AlertTriangle,
+  ArrowLeft,
+  Bus,
+  CheckCircle,
+  Clock,
+  MapPin,
+  Navigation,
+  Users,
+} from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import type { Bus as BusType } from '../types'
+import { busAPI, passengerAPI, tripAPI } from '../utils/api'
+import { MapView } from './MapView'
 
 interface BusInfoPublicProps {
+  busId: string
+  onClose?: () => void
+}
+
+export function BusInfoPublic({ busId, onClose }: BusInfoPublicProps) {
+  const [busData, setBusData] = useState<BusType | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [busStatus, setBusStatus] = useState<'on-time' | 'delayed' | 'emergency' | 'stopped'>('on-time')
+  const [statusMessage, setStatusMessage] = useState('')
+  const [currentPassengers, setCurrentPassengers] = useState(0)
   busId: string;
   busqrCodeId?: boolean;
   onClose?: () => void;
@@ -20,49 +41,49 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
   const [currentPassengers, setCurrentPassengers] = useState(0);
 
   useEffect(() => {
-    loadBusData();
-    
+    loadBusData()
+
     // Refresh data every 5 seconds
     const interval = setInterval(() => {
-      loadBusData();
-    }, 5000);
+      loadBusData()
+    }, 5000)
 
-    return () => clearInterval(interval);
-  }, [busId]);
+    return () => clearInterval(interval)
+  }, [busId])
 
   const loadBusData = async () => {
     try {
       if (!busId) return;
       // Fetch bus data
-      const busResponse = await busAPI.getById(busId);
-      const bus = busResponse.data;
-      
+      const busResponse = await busAPI.getById(busId)
+      const bus = busResponse.data
+
       if (!bus) {
-        setLoading(false);
-        return;
+        setLoading(false)
+        return
       }
 
       // Fetch active trip for this bus
-      const tripsResponse = await tripAPI.getOngoing();
-      const activeTrip = tripsResponse.data.find((trip: any) => trip.busId === busId);
-      
-      let passengerCount = 0;
+      const tripsResponse = await tripAPI.getOngoing()
+      const activeTrip = tripsResponse.data.find((trip: any) => trip.busId === busId)
+
+      let passengerCount = 0
       if (activeTrip) {
         // Fetch passengers for this trip
-        const passengersResponse = await passengerAPI.getByTrip(activeTrip.id);
-        passengerCount = passengersResponse.data.length;
+        const passengersResponse = await passengerAPI.getByTrip(activeTrip.id)
+        passengerCount = passengersResponse.data.length
       }
 
       // Check for bus alerts
       try {
-        const alertResponse = await busAPI.getAlert(busId);
+        const alertResponse = await busAPI.getAlert(busId)
         if (alertResponse.data) {
-          setBusStatus(alertResponse.data.status);
-          setStatusMessage(alertResponse.data.message || '');
+          setBusStatus(alertResponse.data.status)
+          setStatusMessage(alertResponse.data.message || '')
         }
       } catch (error) {
         // No alert is fine, default to on-time
-        setBusStatus('on-time');
+        setBusStatus('on-time')
       }
 
       // Convert to BusType format
@@ -77,45 +98,38 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
         location: {
           lat: bus.location?.lat || 14.5995,
           lng: bus.location?.lng || 120.9842,
-          lastUpdated: bus.location?.lastUpdated ? new Date(bus.location.lastUpdated) : new Date()
+          lastUpdated: bus.location?.lastUpdated ? new Date(bus.location.lastUpdated) : new Date(),
         },
         currentTrip: activeTrip?.id || undefined,
+      }
         qrCodeId: bus.qrCodeId, 
       };
 
-      setBusData(busTypeData);
-      setCurrentPassengers(passengerCount);
-      setLoading(false);
+      setBusData(busTypeData)
+      setCurrentPassengers(passengerCount)
+      setLoading(false)
     } catch (error) {
-      console.error('Error loading bus data:', error);
-      toast.error('Failed to load bus information');
-      setLoading(false);
+      console.error('Error loading bus data:', error)
+      toast.error('Failed to load bus information')
+      setLoading(false)
     }
-  };
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
           <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading bus information...</p>
         </motion.div>
       </div>
-    );
+    )
   }
 
   if (!busData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h3 className="text-gray-900 mb-2">Bus Not Found</h3>
           <p className="text-gray-600">The requested bus information could not be found.</p>
@@ -130,12 +144,12 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
         )}
         </motion.div>
       </div>
-    );
+    )
   }
 
-  const occupancyPercentage = (currentPassengers / busData.maxCapacity) * 100;
-  const isNearlyFull = occupancyPercentage >= 80;
-  const isFilling = occupancyPercentage >= 50 && occupancyPercentage < 80;
+  const occupancyPercentage = (currentPassengers / busData.maxCapacity) * 100
+  const isNearlyFull = occupancyPercentage >= 80
+  const isFilling = occupancyPercentage >= 50 && occupancyPercentage < 80
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-3 sm:p-4 md:p-6">
@@ -179,16 +193,20 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
               className="overflow-hidden"
             >
-              <div className={`p-4 rounded-xl border-2 flex items-start gap-3 shadow-lg ${
-                busStatus === 'emergency' 
-                  ? 'bg-red-50 border-red-200 text-red-900' 
-                  : busStatus === 'delayed'
-                  ? 'bg-amber-50 border-amber-200 text-amber-900'
-                  : 'bg-gray-50 border-gray-200 text-gray-900'
-              }`}>
-                <div className={`p-2 rounded-full flex-shrink-0 ${
-                  busStatus === 'emergency' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
-                }`}>
+              <div
+                className={`p-4 rounded-xl border-2 flex items-start gap-3 shadow-lg ${
+                  busStatus === 'emergency'
+                    ? 'bg-red-50 border-red-200 text-red-900'
+                    : busStatus === 'delayed'
+                      ? 'bg-amber-50 border-amber-200 text-amber-900'
+                      : 'bg-gray-50 border-gray-200 text-gray-900'
+                }`}
+              >
+                <div
+                  className={`p-2 rounded-full flex-shrink-0 ${
+                    busStatus === 'emergency' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+                  }`}
+                >
                   {busStatus === 'emergency' ? (
                     <AlertOctagon className="w-6 h-6 animate-pulse" />
                   ) : (
@@ -200,7 +218,10 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
                     {busStatus === 'emergency' ? 'EMERGENCY ALERT' : 'Trip Delayed'}
                   </h3>
                   <p className="text-sm opacity-90 font-medium">
-                    {statusMessage || (busStatus === 'emergency' ? 'This bus is experiencing an emergency.' : 'This trip is currently delayed.')}
+                    {statusMessage ||
+                      (busStatus === 'emergency'
+                        ? 'This bus is experiencing an emergency.'
+                        : 'This trip is currently delayed.')}
                   </p>
                   <p className="text-xs mt-1 opacity-75">
                     Last updated: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -212,11 +233,7 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
         </AnimatePresence>
 
         {/* Main Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <div className="space-y-3 sm:space-y-4 md:space-y-6">
             {/* Status Card */}
             <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
@@ -225,9 +242,11 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
                   <h3 className="text-gray-900 mb-1 sm:mb-2 text-base sm:text-lg">Bus Status</h3>
                   <p className="text-gray-600 text-sm">Driver: {busData.driver}</p>
                 </div>
-                <div className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-2 ${
-                  busData.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                }`}>
+                <div
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-2 ${
+                    busData.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
                   {busData.status === 'active' ? (
                     <>
                       <CheckCircle className="w-4 h-4" />
@@ -266,11 +285,15 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
                   </div>
                   <div className="flex items-center justify-between mt-1.5 sm:mt-2">
                     <span className="text-xs text-gray-600">Available</span>
-                    <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full ${
-                      isNearlyFull ? 'bg-red-100 text-red-700' : 
-                      isFilling ? 'bg-yellow-100 text-yellow-700' : 
-                      'bg-green-100 text-green-700'
-                    }`}>
+                    <span
+                      className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full ${
+                        isNearlyFull
+                          ? 'bg-red-100 text-red-700'
+                          : isFilling
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-green-100 text-green-700'
+                      }`}
+                    >
                       {isNearlyFull ? 'Almost Full' : isFilling ? 'Filling Up' : 'Seats Available'}
                     </span>
                   </div>
@@ -319,12 +342,7 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
                   </div>
                 </div>
                 <div className="h-[250px] sm:h-[300px] md:h-[350px]">
-                  <MapView 
-                    buses={[busData]}
-                    selectedBus={busData}
-                    onBusSelect={() => {}}
-                    height="100%"
-                  />
+                  <MapView buses={[busData]} selectedBus={busData} onBusSelect={() => {}} height="100%" />
                 </div>
                 <div className="p-3 sm:p-4 bg-gray-50 border-t border-gray-200">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 text-xs sm:text-sm">
@@ -333,7 +351,9 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
                       <span>Last updated: {busData.location.lastUpdated.toLocaleTimeString()}</span>
                     </div>
                     <div className="text-gray-600 truncate max-w-full sm:max-w-none">
-                      <span>{busData.location.lat.toFixed(4)}, {busData.location.lng.toFixed(4)}</span>
+                      <span>
+                        {busData.location.lat.toFixed(4)}, {busData.location.lng.toFixed(4)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -345,5 +365,5 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
         </motion.div>
       </div>
     </div>
-  );
+  )
 }

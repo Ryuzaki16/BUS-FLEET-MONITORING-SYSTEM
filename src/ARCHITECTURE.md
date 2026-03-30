@@ -33,19 +33,24 @@
 ## 🎯 Architecture Principles
 
 ### 1. **Separation of Concerns**
+
 - **Components**: Pure UI components with minimal logic
 - **Hooks**: Reusable business logic and state management
 - **Constants**: Configuration and static data
 - **Types**: Type safety and intellisense
 
 ### 2. **Single Responsibility**
+
 Each component/hook has one clear purpose:
+
 - `TripCard` → Display trip status
 - `useGPSTracking` → Handle GPS operations
 - `useTripManagement` → Manage trip lifecycle
 
 ### 3. **Composition Over Inheritance**
+
 Components are composed together rather than deeply nested:
+
 ```tsx
 <ConductorPortal>
   <TripCard />
@@ -55,7 +60,9 @@ Components are composed together rather than deeply nested:
 ```
 
 ### 4. **Custom Hooks for Logic**
+
 Business logic is extracted into custom hooks:
+
 - State management
 - API calls
 - Side effects
@@ -64,81 +71,93 @@ Business logic is extracted into custom hooks:
 ## 🔧 Key Custom Hooks
 
 ### `useGPSTracking(busId)`
+
 Manages GPS tracking with `watchPosition` API
+
 ```tsx
 const {
-  isGranted,          // Permission status
-  currentLocation,    // Current lat/lng
-  requestPermission,  // Request permission function
-  stopTracking        // Stop tracking function
-} = useGPSTracking(busId);
+  isGranted, // Permission status
+  currentLocation, // Current lat/lng
+  requestPermission, // Request permission function
+  stopTracking, // Stop tracking function
+} = useGPSTracking(busId)
 ```
 
 ### `useTripManagement(busInfo)`
+
 Handles trip lifecycle and passenger management
+
 ```tsx
 const {
-  isActive,           // Trip status
-  passengers,         // Current passengers
-  startTrip,          // Start trip function
-  endTrip,            // End trip function
-  addPassenger,       // Add passenger function
-  removePassenger,    // Remove passenger function
-  getTotalRevenue     // Calculate revenue
-} = useTripManagement(busInfo);
+  isActive, // Trip status
+  passengers, // Current passengers
+  startTrip, // Start trip function
+  endTrip, // End trip function
+  addPassenger, // Add passenger function
+  removePassenger, // Remove passenger function
+  getTotalRevenue, // Calculate revenue
+} = useTripManagement(busInfo)
 ```
 
 ### `useBusSelection()`
+
 Manages bus validation and selection
+
 ```tsx
 const {
-  busInfo,            // Selected bus info
-  validateBus,        // Validate bus number
-  clearBus            // Clear selection
-} = useBusSelection();
+  busInfo, // Selected bus info
+  validateBus, // Validate bus number
+  clearBus, // Clear selection
+} = useBusSelection()
 ```
 
 ## 📝 Component Props Pattern
 
 All components follow a consistent prop pattern:
+
 ```tsx
 interface ComponentProps {
   // Data props
-  data: DataType;
-  
+  data: DataType
+
   // State props
-  isLoading: boolean;
-  isOpen: boolean;
-  
+  isLoading: boolean
+  isOpen: boolean
+
   // Callback props
-  onAction: () => void;
-  onClose: () => void;
+  onAction: () => void
+  onClose: () => void
 }
 ```
 
 ## 🎨 Benefits of This Structure
 
 ### ✅ **Maintainability**
+
 - Easy to locate and modify specific functionality
 - Clear dependencies between modules
 - Self-documenting code structure
 
 ### ✅ **Testability**
+
 - Hooks can be tested independently
 - Components are pure and predictable
 - Mocked dependencies are simple
 
 ### ✅ **Reusability**
+
 - Hooks can be used across different components
 - Components can be reused in different contexts
 - Constants prevent duplication
 
 ### ✅ **Scalability**
+
 - New features added without touching existing code
 - Easy to add new components/hooks
 - Type safety prevents regression bugs
 
 ### ✅ **Developer Experience**
+
 - TypeScript autocomplete works perfectly
 - Easy to understand data flow
 - Quick to onboard new developers
@@ -172,6 +191,7 @@ User Interaction
 ## 📚 Future Enhancements
 
 Potential improvements to the structure:
+
 - Add unit tests for hooks
 - Implement error boundaries
 - Add loading skeletons
