@@ -13,7 +13,7 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
 
   // Generate QR code URL using the permanent qrCodeId
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
-    `${window.location.origin}/bus/track/${qrCodeId}`
+    `${window.location.origin}/bus/track/${busId}`
   )}`;
 
   const openModal = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -123,7 +123,7 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600 text-sm">QR Code ID:</span>
-                      <span className="text-gray-900 font-mono text-sm">{qrCodeId}</span>
+                      {/* <span className="text-gray-900 font-mono text-sm">{qrCodeUrl}</span> */}
                     </div>
                   </div>
 

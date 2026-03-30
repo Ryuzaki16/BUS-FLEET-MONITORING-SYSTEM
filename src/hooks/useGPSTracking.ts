@@ -29,6 +29,7 @@ export function useGPSTracking(busId: string | null) {
     
     try {
       await busAPI.updateLocation(busId, location);
+      console.log('Bus location updated:', location);
     } catch (error) {
       console.error('Error updating bus location:', error);
     }

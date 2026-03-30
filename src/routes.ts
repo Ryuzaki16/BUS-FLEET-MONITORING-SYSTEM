@@ -10,6 +10,7 @@ import { Reports } from "./components/Reports";
 import { LostAndFound } from "./components/LostAndFound";
 import { PassengerPortal } from "./components/PassengerPortal";
 import { ConductorPortal } from "./components/conductor/ConductorPortal";
+import { BusInfoPublicPage } from "./components/BusInfoPublicPage";
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
           { index: true, Component: PassengerPortal },
         ],
       },
+      {
+        path: "bus/track/:busId",
+        Component: BusInfoPublicPage
+      }
     ],
   },
 ]);

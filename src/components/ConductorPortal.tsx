@@ -11,7 +11,7 @@ interface Passenger {
   destination: string;
   fare: number;
   timestamp: Date | string;
-  paymentMethod: 'cash' | 'digital';
+  paymentMethod: string;
 }
 
 export function ConductorPortal() {
@@ -30,7 +30,6 @@ export function ConductorPortal() {
   const [boardingPoint, setBoardingPoint] = useState('Dasmariñas');
   const [destination, setDestination] = useState('Alabang');
   const [fare, setFare] = useState(45);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'digital'>('cash');
 
   // Lost item form state
   const [lostItem, setLostItem] = useState({
@@ -161,7 +160,7 @@ export function ConductorPortal() {
         boardingPoint,
         destination,
         fare,
-        paymentMethod: 'cash'
+        paymentMethod: "cash"
       };
 
       await passengerAPI.add(currentTripId, newPassenger);

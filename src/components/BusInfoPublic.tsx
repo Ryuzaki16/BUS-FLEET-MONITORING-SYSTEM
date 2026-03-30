@@ -8,10 +8,11 @@ import { toast } from 'sonner';
 
 interface BusInfoPublicProps {
   busId: string;
+  busqrCodeId?: boolean;
   onClose?: () => void;
 }
 
-export function BusInfoPublic({ busId, onClose }: BusInfoPublicProps) {
+export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProps) {
   const [busData, setBusData] = useState<BusType | null>(null);
   const [loading, setLoading] = useState(true);
   const [busStatus, setBusStatus] = useState<'on-time' | 'delayed' | 'emergency' | 'stopped'>('on-time');
@@ -31,6 +32,7 @@ export function BusInfoPublic({ busId, onClose }: BusInfoPublicProps) {
 
   const loadBusData = async () => {
     try {
+      if (!busId) return;
       // Fetch bus data
       const busResponse = await busAPI.getById(busId);
       const bus = busResponse.data;
@@ -77,7 +79,8 @@ export function BusInfoPublic({ busId, onClose }: BusInfoPublicProps) {
           lng: bus.location?.lng || 120.9842,
           lastUpdated: bus.location?.lastUpdated ? new Date(bus.location.lastUpdated) : new Date()
         },
-        currentTrip: activeTrip?.id || undefined
+        currentTrip: activeTrip?.id || undefined,
+        qrCodeId: bus.qrCodeId, 
       };
 
       setBusData(busTypeData);
@@ -117,13 +120,14 @@ export function BusInfoPublic({ busId, onClose }: BusInfoPublicProps) {
           <h3 className="text-gray-900 mb-2">Bus Not Found</h3>
           <p className="text-gray-600">The requested bus information could not be found.</p>
           {onClose && (
-            <button
-              onClick={onClose}
-              className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all"
-            >
-              Back to Portal
-            </button>
-          )}
+          <>
+            {!busqrCodeId && (
+              <button onClick={onClose}
+                className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all">
+                Back to Portal </button>
+            )}
+          </>
+        )}
         </motion.div>
       </div>
     );
@@ -138,15 +142,18 @@ export function BusInfoPublic({ busId, onClose }: BusInfoPublicProps) {
       <div className="max-w-2xl mx-auto">
         {/* Back Button */}
         {onClose && (
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={onClose}
-            className="mb-3 sm:mb-4 flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg hover:shadow-xl transition-all text-gray-700 hover:text-indigo-600 text-sm sm:text-base"
-          >
-            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span>Back to Portal</span>
+          <>
+          {!busqrCodeId && (
+            <motion.button initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }} onClick={onClose}
+              className="mb-3 sm:mb-4 flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg hover:shadow-xl transition-all text-gray-700 hover:text-indigo-600 text-sm sm:text-base" >    
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              <button className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all">
+                Back to Portal </button>
           </motion.button>
+        
+        )}
+        </>
         )}
 
         {/* Header */}
