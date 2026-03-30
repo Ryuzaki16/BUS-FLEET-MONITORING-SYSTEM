@@ -13,6 +13,12 @@ export interface Bus {
   }
   currentTrip?: string
   qrCodeId?: string // Permanent unique QR code identifier
+    lat: number;
+    lng: number;
+    lastUpdated: Date;
+  };
+  currentTrip?: string;
+  qrCodeId: string; // Permanent unique QR code identifier
 }
 
 export interface Trip {
