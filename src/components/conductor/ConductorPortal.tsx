@@ -1,31 +1,38 @@
-import { LogOut } from 'lucide-react'
-import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
+import { LogOut } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Hooks
-import { useBusSelection, useBusStatus } from '../../hooks/useBusManagement'
-import { useGPSTracking } from '../../hooks/useGPSTracking'
-import { useTripManagement } from '../../hooks/useTripManagement'
+import { useGPSTracking } from '../../hooks/useGPSTracking';
+import { useTripManagement } from '../../hooks/useTripManagement';
+import { useBusSelection, useBusStatus } from '../../hooks/useBusManagement';
 
 // Components
-import { BusSelectionScreen } from './BusSelectionScreen'
-import { GPSPermissionModal } from './GPSPermissionModal'
-import { LostItemFormModal } from './LostItemFormModal'
-import { PassengerList } from './PassengerList'
-import { StatusUpdateModal } from './StatusUpdateModal'
-import { TicketFormData, TicketFormModal } from './TicketFormModal'
-import { TripActions } from './TripActions'
-import { TripCard } from './TripCard'
+import { BusSelectionScreen } from './BusSelectionScreen';
+import { GPSPermissionModal } from './GPSPermissionModal';
+import { TripCard } from './TripCard';
+import { TripActions } from './TripActions';
+import { PassengerList } from './PassengerList';
+import { TicketFormModal, TicketFormData } from './TicketFormModal';
+import { StatusUpdateModal } from './StatusUpdateModal';
+import { LostItemFormModal } from './LostItemFormModal';
 
 // Types
-import { BusStatus, LostItem } from '../../types/conductor'
-import { lostItemAPI } from '../../utils/api'
+import { BusStatus, LostItem } from '../../types/conductor';
+import { lostItemAPI } from '../../utils/api';
 
 export function ConductorPortal() {
   // Bus Management
-  const { busInfo, busNumberInput, isValidating, setBusNumberInput, validateBus, loadSavedBus, clearBus } =
-    useBusSelection()
+  const {
+    busInfo,
+    busNumberInput,
+    isValidating,
+    setBusNumberInput,
+    validateBus,
+    loadSavedBus,
+    clearBus
+  } = useBusSelection();
 
   // GPS Tracking
   const {
@@ -33,8 +40,8 @@ export function ConductorPortal() {
     currentLocation,
     isRequesting: isRequestingGps,
     requestPermission: requestGpsPermission,
-    skipPermission: skipGps,
-  } = useGPSTracking(busInfo?.id || null)
+    skipPermission: skipGps
+  } = useGPSTracking(busInfo?.id || null);
 
   // Trip Management
   const {
@@ -46,92 +53,92 @@ export function ConductorPortal() {
     endTrip,
     addPassenger,
     removePassenger,
-    getTotalRevenue,
-  } = useTripManagement(busInfo)
+    getTotalRevenue
+  } = useTripManagement(busInfo);
 
   // Bus Status
-  const { currentStatus, updateStatus } = useBusStatus(busInfo)
+  const { currentStatus, updateStatus } = useBusStatus(busInfo);
 
   // UI State
-  const [showGpsModal, setShowGpsModal] = useState(false)
-  const [showTicketForm, setShowTicketForm] = useState(false)
-  const [showStatusModal, setShowStatusModal] = useState(false)
-  const [showLostItemForm, setShowLostItemForm] = useState(false)
-  const [busSelected, setBusSelected] = useState(false)
+  const [showGpsModal, setShowGpsModal] = useState(false);
+  const [showTicketForm, setShowTicketForm] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showLostItemForm, setShowLostItemForm] = useState(false);
+  const [busSelected, setBusSelected] = useState(false);
 
   // Load saved bus on mount
   useEffect(() => {
-    const savedBus = loadSavedBus()
+    const savedBus = loadSavedBus();
     if (savedBus) {
-      setBusSelected(true)
-      setShowGpsModal(!gpsGranted)
-      loadActiveTrip(savedBus.id)
+      setBusSelected(true);
+      setShowGpsModal(!gpsGranted);
+      loadActiveTrip(savedBus.id);
     }
-  }, [])
+  }, []);
 
   // Handlers
   const handleValidateBus = async () => {
-    const bus = await validateBus()
+    const bus = await validateBus();
     if (bus) {
-      setBusSelected(true)
-      setShowGpsModal(true)
-      await loadActiveTrip(bus.id)
+      setBusSelected(true);
+      setShowGpsModal(true);
+      await loadActiveTrip(bus.id);
     }
-  }
+  };
 
   const handleChangeBus = () => {
     if (tripActive) {
-      toast.error('Please end the current trip before changing bus.')
-      return
+      toast.error('Please end the current trip before changing bus.');
+      return;
     }
-    clearBus()
-    setBusSelected(false)
-  }
+    clearBus();
+    setBusSelected(false);
+  };
 
   const handleIssueTicket = async (ticketData: TicketFormData) => {
-    return await addPassenger(ticketData)
-  }
+    return await addPassenger(ticketData);
+  };
 
   const handleUpdateStatus = async (status: BusStatus, message: string = '') => {
-    const success = await updateStatus(status, message)
+    const success = await updateStatus(status, message);
     if (success) {
-      setShowStatusModal(false)
+      setShowStatusModal(false);
     }
-  }
+  };
 
   const handleReportLostItem = async (item: LostItem) => {
-    if (!busInfo) return false
+    if (!busInfo) return false;
 
     try {
-      const itemId = `lf_${Date.now()}`
+      const itemId = `lf_${Date.now()}`;
       await lostItemAPI.create({
         id: itemId,
         ...item,
         busPlateNumber: busInfo.plateNumber,
         route: busInfo.route,
         foundBy: busInfo.driver,
-      })
+      });
 
-      toast.success('Lost item reported successfully!')
-      return true
+      toast.success('Lost item reported successfully!');
+      return true;
     } catch (error) {
-      console.error('Error reporting lost item:', error)
-      toast.error('Failed to report lost item. Please try again.')
-      return false
+      console.error('Error reporting lost item:', error);
+      toast.error('Failed to report lost item. Please try again.');
+      return false;
     }
-  }
+  };
 
   const handleGpsRequest = async () => {
-    const granted = await requestGpsPermission()
+    const granted = await requestGpsPermission();
     if (granted) {
-      setShowGpsModal(false)
+      setShowGpsModal(false);
     }
-  }
+  };
 
   const handleGpsSkip = () => {
-    skipGps()
-    setShowGpsModal(false)
-  }
+    skipGps();
+    setShowGpsModal(false);
+  };
 
   // Render bus selection screen if no bus selected
   if (!busSelected || !busInfo) {
@@ -142,20 +149,26 @@ export function ConductorPortal() {
         onBusNumberChange={setBusNumberInput}
         onValidate={handleValidateBus}
       />
-    )
+    );
   }
 
-  const totalRevenue = getTotalRevenue()
+  const totalRevenue = getTotalRevenue();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-3 sm:p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 md:mb-6"
+        >
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-gray-900 mb-1 md:mb-2">Conductor Dashboard</h2>
-              <p className="text-gray-600 text-sm md:text-base">Issue tickets and manage your trip</p>
+              <p className="text-gray-600 text-sm md:text-base">
+                Issue tickets and manage your trip
+              </p>
             </div>
             <button
               onClick={handleChangeBus}
@@ -191,7 +204,10 @@ export function ConductorPortal() {
               onReportLostItem={() => setShowLostItemForm(true)}
             />
 
-            <PassengerList passengers={passengers} onRemovePassenger={removePassenger} />
+            <PassengerList
+              passengers={passengers}
+              onRemovePassenger={removePassenger}
+            />
           </>
         ) : (
           <NoActiveTripPlaceholder busPlateNumber={busInfo.plateNumber} />
@@ -228,11 +244,11 @@ export function ConductorPortal() {
         />
       </div>
     </div>
-  )
+  );
 }
 
 interface NoActiveTripPlaceholderProps {
-  busPlateNumber: string
+  busPlateNumber: string;
 }
 
 function NoActiveTripPlaceholder({ busPlateNumber }: NoActiveTripPlaceholderProps) {
@@ -245,7 +261,7 @@ function NoActiveTripPlaceholder({ busPlateNumber }: NoActiveTripPlaceholderProp
       <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400"
         >
           ⏱️
@@ -260,5 +276,5 @@ function NoActiveTripPlaceholder({ busPlateNumber }: NoActiveTripPlaceholderProp
         <span>Bus: {busPlateNumber}</span>
       </div>
     </motion.div>
-  )
+  );
 }

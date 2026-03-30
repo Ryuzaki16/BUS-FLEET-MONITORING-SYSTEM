@@ -1,13 +1,13 @@
-import { CheckCircle, Info, Navigation } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { Location } from '../../types/conductor'
+import { motion, AnimatePresence } from 'motion/react';
+import { Navigation, Info, CheckCircle } from 'lucide-react';
+import { Location } from '../../types/conductor';
 
 interface GPSPermissionModalProps {
-  isOpen: boolean
-  currentLocation: Location | null
-  isRequesting: boolean
-  onRequestPermission: () => void
-  onSkip: () => void
+  isOpen: boolean;
+  currentLocation: Location | null;
+  isRequesting: boolean;
+  onRequestPermission: () => void;
+  onSkip: () => void;
 }
 
 export function GPSPermissionModal({
@@ -15,7 +15,7 @@ export function GPSPermissionModal({
   currentLocation,
   isRequesting,
   onRequestPermission,
-  onSkip,
+  onSkip
 }: GPSPermissionModalProps) {
   return (
     <AnimatePresence>
@@ -38,8 +38,8 @@ export function GPSPermissionModal({
               </div>
               <h3 className="text-gray-900 mb-2 text-center">Enable GPS Tracking</h3>
               <p className="text-gray-600 text-sm sm:text-base text-center">
-                Allow real-time location tracking to provide accurate bus position updates to passengers and
-                administrators.
+                Allow real-time location tracking to provide accurate bus position 
+                updates to passengers and administrators.
               </p>
             </div>
 
@@ -103,5 +103,5 @@ export function GPSPermissionModal({
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

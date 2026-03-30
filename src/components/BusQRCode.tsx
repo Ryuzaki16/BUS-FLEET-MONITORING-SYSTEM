@@ -15,6 +15,7 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
     `${window.location.origin}/bus/track/${busId}`
   )}`;
+  console.log(qrCodeUrl);
 
   const openModal = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
