@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Bus, MapPin, Clock, Navigation, Users, Star, Radio } from 'lucide-react';
+import { Bus, Clock, MapPin, Navigation, Radio, Star, Users } from 'lucide-react';
 import { motion } from 'motion/react';
-import { BusInfoPublic } from './BusInfoPublic';
-import { tripAPI, busAPI } from '../utils/api';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { busAPI } from '../utils/api';
+import { BusInfoPublic } from './BusInfoPublic';
 
 export function PassengerPortal() {
   const [selectedDirection, setSelectedDirection] = useState<'to-alabang' | 'to-dasmarinas'>('to-alabang');
@@ -13,7 +13,7 @@ export function PassengerPortal() {
 
   useEffect(() => {
     loadBuses();
-    
+
     // Refresh bus data every 10 seconds
     const interval = setInterval(() => {
       loadBuses();
@@ -26,7 +26,7 @@ export function PassengerPortal() {
     try {
       const response = await busAPI.getAll();
       const buses = response.data || [];
-      
+
       // Filter active buses
       const activeBuses = buses.filter((bus: any) => bus.status === 'active');
       setNearbyBuses(activeBuses);
@@ -57,18 +57,14 @@ export function PassengerPortal() {
     'Salitran',
     'Zapote Junction',
     'Alabang Town Center',
-    'Alabang Terminal'
+    'Alabang Terminal',
   ];
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 sm:mb-6"
-        >
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
             <div>
               <h2 className="text-gray-900 mb-1 sm:mb-2">Passenger Portal</h2>
@@ -87,19 +83,21 @@ export function PassengerPortal() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <button
               onClick={() => setSelectedDirection('to-alabang')}
-              className={`p-4 sm:p-6 rounded-xl border-2 transition-all ${
+              className={`cursor-pointer p-4 sm:p-6 rounded-xl border-2 transition-all ${
                 selectedDirection === 'to-alabang'
                   ? 'border-indigo-600 bg-gradient-to-r from-indigo-50 to-blue-50 shadow-lg'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <div className="flex items-center justify-between mb-2 sm:mb-3">
-                <Navigation className={`w-6 h-6 sm:w-8 sm:h-8 ${selectedDirection === 'to-alabang' ? 'text-indigo-600' : 'text-gray-400'}`} />
-                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs ${
-                  selectedDirection === 'to-alabang' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'bg-gray-200 text-gray-600'
-                }`}>
+                <Navigation
+                  className={`w-6 h-6 sm:w-8 sm:h-8 ${selectedDirection === 'to-alabang' ? 'text-indigo-600' : 'text-gray-400'}`}
+                />
+                <span
+                  className={`px-2 sm:px-3 py-1 rounded-full text-xs ${
+                    selectedDirection === 'to-alabang' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
                   45 km
                 </span>
               </div>
@@ -109,19 +107,21 @@ export function PassengerPortal() {
 
             <button
               onClick={() => setSelectedDirection('to-dasmarinas')}
-              className={`p-4 sm:p-6 rounded-xl border-2 transition-all ${
+              className={`cursor-pointer p-4 sm:p-6 rounded-xl border-2 transition-all ${
                 selectedDirection === 'to-dasmarinas'
                   ? 'border-indigo-600 bg-gradient-to-r from-indigo-50 to-blue-50 shadow-lg'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <div className="flex items-center justify-between mb-2 sm:mb-3">
-                <Navigation className={`w-6 h-6 sm:w-8 sm:h-8 rotate-180 ${selectedDirection === 'to-dasmarinas' ? 'text-indigo-600' : 'text-gray-400'}`} />
-                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs ${
-                  selectedDirection === 'to-dasmarinas' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'bg-gray-200 text-gray-600'
-                }`}>
+                <Navigation
+                  className={`w-6 h-6 sm:w-8 sm:h-8 rotate-180 ${selectedDirection === 'to-dasmarinas' ? 'text-indigo-600' : 'text-gray-400'}`}
+                />
+                <span
+                  className={`px-2 sm:px-3 py-1 rounded-full text-xs ${
+                    selectedDirection === 'to-dasmarinas' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
                   45 km
                 </span>
               </div>
@@ -191,14 +191,14 @@ export function PassengerPortal() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between text-xs sm:text-sm mb-1">
                           <span className="text-gray-600">Passengers</span>
-                          <span className="text-gray-900">{bus.currentPassengers}/{bus.maxCapacity}</span>
+                          <span className="text-gray-900">
+                            {bus.currentPassengers}/{bus.maxCapacity}
+                          </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full transition-all ${
-                              hasSeats ? 'bg-green-500' :
-                              isAlmostFull ? 'bg-red-500' :
-                              'bg-yellow-500'
+                              hasSeats ? 'bg-green-500' : isAlmostFull ? 'bg-red-500' : 'bg-yellow-500'
                             }`}
                             style={{ width: `${(bus.currentPassengers / bus.maxCapacity) * 100}%` }}
                           />
@@ -210,7 +210,9 @@ export function PassengerPortal() {
                       <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5 sm:mt-0" />
                       <div className="min-w-0">
                         <div className="text-gray-600 text-xs sm:text-sm">Current Location</div>
-                        <div className="text-gray-900 text-sm sm:text-base truncate">{routeStops[Math.floor(Math.random() * routeStops.length)]}</div>
+                        <div className="text-gray-900 text-sm sm:text-base truncate">
+                          {routeStops[Math.floor(Math.random() * routeStops.length)]}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -220,7 +222,7 @@ export function PassengerPortal() {
                       <Radio className="w-4 h-4 text-green-500" />
                       <span className="text-xs sm:text-sm text-green-600">GPS Active</span>
                     </div>
-                    
+
                     {hasSeats && (
                       <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-100 text-green-700 rounded-lg text-xs sm:text-sm flex items-center gap-2 w-full sm:w-auto justify-center">
                         <Star className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -257,22 +259,26 @@ export function PassengerPortal() {
               {routeStops.map((stop, index) => (
                 <div key={index} className="flex items-center gap-3 sm:gap-4">
                   <div className="relative flex flex-col items-center flex-shrink-0">
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm z-10 ${
-                      index === 0 ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white' :
-                      index === routeStops.length - 1 ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white' :
-                      'bg-gray-200 text-gray-700'
-                    }`}>
+                    <div
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm z-10 ${
+                        index === 0
+                          ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white'
+                          : index === routeStops.length - 1
+                            ? 'bg-gradient-to-br from-red-500 to-pink-600 text-white'
+                            : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
                       {index + 1}
                     </div>
-                    {index !== routeStops.length - 1 && (
-                      <div className="w-0.5 h-6 sm:h-8 bg-gray-300 -mt-1" />
-                    )}
+                    {index !== routeStops.length - 1 && <div className="w-0.5 h-6 sm:h-8 bg-gray-300 -mt-1" />}
                   </div>
-                  
+
                   <div className="flex-1 pb-3 sm:pb-4 min-w-0">
                     <h4 className="text-gray-900 text-sm sm:text-base truncate">{stop}</h4>
                     {index === 0 && <p className="text-green-600 text-xs sm:text-sm">Starting Point</p>}
-                    {index === routeStops.length - 1 && <p className="text-red-600 text-xs sm:text-sm">Final Destination</p>}
+                    {index === routeStops.length - 1 && (
+                      <p className="text-red-600 text-xs sm:text-sm">Final Destination</p>
+                    )}
                     {index !== 0 && index !== routeStops.length - 1 && (
                       <p className="text-gray-600 text-xs sm:text-sm">~{index * 6} mins from start</p>
                     )}

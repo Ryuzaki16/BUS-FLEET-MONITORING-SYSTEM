@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Bus, Clock, Users, DollarSign, AlertCircle, MapPin } from 'lucide-react';
+import { Bus, Clock, DollarSign, MapPin, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { mockBuses, mockTrips } from '../data/mockData';
 import { Bus as BusType, Trip } from '../types';
 
@@ -15,27 +15,30 @@ export function Dashboard({ role }: DashboardProps) {
   useEffect(() => {
     // Simulate real-time updates
     const interval = setInterval(() => {
-      setBuses(prev => prev.map(bus => ({
-        ...bus,
-        currentPassengers: bus.status === 'active' 
-          ? Math.min(bus.maxCapacity, Math.max(0, bus.currentPassengers + Math.floor(Math.random() * 5) - 2))
-          : bus.currentPassengers,
-        location: {
-          ...bus.location,
-          lat: bus.location.lat + (Math.random() - 0.5) * 0.001,
-          lng: bus.location.lng + (Math.random() - 0.5) * 0.001,
-          lastUpdated: new Date()
-        }
-      })));
+      setBuses((prev) =>
+        prev.map((bus) => ({
+          ...bus,
+          currentPassengers:
+            bus.status === 'active'
+              ? Math.min(bus.maxCapacity, Math.max(0, bus.currentPassengers + Math.floor(Math.random() * 5) - 2))
+              : bus.currentPassengers,
+          location: {
+            ...bus.location,
+            lat: bus.location.lat + (Math.random() - 0.5) * 0.001,
+            lng: bus.location.lng + (Math.random() - 0.5) * 0.001,
+            lastUpdated: new Date(),
+          },
+        })),
+      );
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const activeBuses = buses.filter(b => b.status === 'active').length;
+  const activeBuses = buses.filter((b) => b.status === 'active').length;
   const totalPassengers = buses.reduce((sum, bus) => sum + bus.currentPassengers, 0);
   const totalRevenue = trips.reduce((sum, trip) => sum + trip.totalFare, 0);
-  const averageOccupancy = totalPassengers / (buses.length * 18) * 100;
+  const averageOccupancy = (totalPassengers / (buses.length * 18)) * 100;
 
   return (
     <div className="p-4 max-w-7xl mx-auto">
@@ -44,7 +47,9 @@ export function Dashboard({ role }: DashboardProps) {
         <div className="bg-white p-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between mb-2">
             <Bus className="w-8 h-8 text-blue-600" />
-            <span className="text-blue-600">{activeBuses}/{buses.length}</span>
+            <span className="text-blue-600">
+              {activeBuses}/{buses.length}
+            </span>
           </div>
           <h4 className="text-gray-900">Active Buses</h4>
           <p className="text-gray-600 text-sm">On the road now</p>
@@ -84,7 +89,7 @@ export function Dashboard({ role }: DashboardProps) {
         <div className="lg:col-span-1 bg-white rounded-xl shadow-lg p-6">
           <h3 className="text-gray-900 mb-4">Live Fleet Status</h3>
           <div className="space-y-3">
-            {buses.map(bus => (
+            {buses.map((bus) => (
               <button
                 key={bus.id}
                 onClick={() => setSelectedBus(bus)}
@@ -96,11 +101,15 @@ export function Dashboard({ role }: DashboardProps) {
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-900">{bus.plateNumber}</span>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    bus.status === 'active' ? 'bg-green-100 text-green-700' :
-                    bus.status === 'idle' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      bus.status === 'active'
+                        ? 'bg-green-100 text-green-700'
+                        : bus.status === 'idle'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                    }`}
+                  >
                     {bus.status}
                   </span>
                 </div>
@@ -133,35 +142,41 @@ export function Dashboard({ role }: DashboardProps) {
               {/* Map background */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-green-100">
                 {/* Grid overlay for map feel */}
-                <div className="absolute inset-0" style={{
-                  backgroundImage: 'linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)',
-                  backgroundSize: '40px 40px'
-                }} />
-              </div>
-              
-              {/* Bus markers */}
-              {buses.filter(b => b.status === 'active').map((bus, index) => (
                 <div
-                  key={bus.id}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer hover:scale-110 transition-transform"
+                  className="absolute inset-0"
                   style={{
-                    left: `${20 + index * 20}%`,
-                    top: `${30 + index * 15}%`
+                    backgroundImage:
+                      'linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)',
+                    backgroundSize: '40px 40px',
                   }}
-                  onClick={() => setSelectedBus(bus)}
-                >
-                  <div className="relative">
-                    <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-                      <Bus className="w-6 h-6 text-white" />
+                />
+              </div>
+
+              {/* Bus markers */}
+              {buses
+                .filter((b) => b.status === 'active')
+                .map((bus, index) => (
+                  <div
+                    key={bus.id}
+                    className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer hover:scale-110 transition-transform"
+                    style={{
+                      left: `${20 + index * 20}%`,
+                      top: `${30 + index * 15}%`,
+                    }}
+                    onClick={() => setSelectedBus(bus)}
+                  >
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                        <Bus className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white px-2 py-1 rounded shadow-lg whitespace-nowrap text-xs">
+                        {bus.plateNumber}
+                      </div>
+                      {/* Pulse animation */}
+                      <div className="absolute inset-0 bg-indigo-400 rounded-full animate-ping opacity-75" />
                     </div>
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white px-2 py-1 rounded shadow-lg whitespace-nowrap text-xs">
-                      {bus.plateNumber}
-                    </div>
-                    {/* Pulse animation */}
-                    <div className="absolute inset-0 bg-indigo-400 rounded-full animate-ping opacity-75" />
                   </div>
-                </div>
-              ))}
+                ))}
 
               {/* Legend */}
               <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg">
@@ -199,7 +214,9 @@ export function Dashboard({ role }: DashboardProps) {
                   <div className="space-y-3">
                     <div>
                       <label className="text-gray-600 text-sm">Current Passengers</label>
-                      <p className="text-gray-900">{selectedBus.currentPassengers} / {selectedBus.maxCapacity}</p>
+                      <p className="text-gray-900">
+                        {selectedBus.currentPassengers} / {selectedBus.maxCapacity}
+                      </p>
                     </div>
                     <div>
                       <label className="text-gray-600 text-sm">Last Location Update</label>

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { ArrowDownRight, ArrowUpRight, Bus, Calendar, Clock, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { motion } from 'motion/react';
-import { TrendingUp, TrendingDown, DollarSign, Users, Bus, Clock, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { tripAPI, busAPI } from '../utils/api';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { busAPI, tripAPI } from '../utils/api';
 
 interface Trip {
   id: string;
@@ -23,12 +23,12 @@ export function Analytics() {
   const [allTrips, setAllTrips] = useState<Trip[]>([]);
   const [buses, setBuses] = useState<any[]>([]);
   const [selectedRange, setSelectedRange] = useState('7 Days');
-  
+
   const timeRanges = ['Today', '7 Days', '30 Days', 'Year'];
 
   useEffect(() => {
     loadAnalyticsData();
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(loadAnalyticsData, 30000);
     return () => clearInterval(interval);
@@ -36,10 +36,7 @@ export function Analytics() {
 
   const loadAnalyticsData = async () => {
     try {
-      const [tripsResponse, busesResponse] = await Promise.all([
-        tripAPI.getAll(),
-        busAPI.getAll()
-      ]);
+      const [tripsResponse, busesResponse] = await Promise.all([tripAPI.getAll(), busAPI.getAll()]);
 
       setAllTrips(tripsResponse.data || []);
       setBuses(busesResponse.data || []);
@@ -56,17 +53,17 @@ export function Analytics() {
 
   // Calculate metrics from real data
   const calculateMetrics = () => {
-    const completedTrips = allTrips.filter(trip => trip.status === 'completed');
-    const ongoingTrips = allTrips.filter(trip => trip.status === 'ongoing');
-    
+    const completedTrips = allTrips.filter((trip) => trip.status === 'completed');
+    const ongoingTrips = allTrips.filter((trip) => trip.status === 'ongoing');
+
     // Total trips
     const totalTrips = completedTrips.length;
-    
+
     // Total passengers and revenue from trip data (more efficient)
     let totalPassengers = 0;
     let totalRevenue = 0;
-    
-    allTrips.forEach(trip => {
+
+    allTrips.forEach((trip) => {
       // Use the totalFare and passengersBoarded fields that are already tracked
       totalRevenue += trip.totalFare || 0;
       totalPassengers += trip.passengersBoarded || 0;
@@ -75,13 +72,14 @@ export function Analytics() {
     // Calculate average trip duration for completed trips
     let totalDuration = 0;
     let tripCount = 0;
-    
-    completedTrips.forEach(trip => {
+
+    completedTrips.forEach((trip) => {
       if (trip.startTime && trip.endTime) {
         const start = new Date(trip.startTime).getTime();
         const end = new Date(trip.endTime).getTime();
         const duration = (end - start) / (1000 * 60); // minutes
-        if (duration > 0 && duration < 300) { // Filter out invalid durations
+        if (duration > 0 && duration < 300) {
+          // Filter out invalid durations
           totalDuration += duration;
           tripCount++;
         }
@@ -94,14 +92,14 @@ export function Analytics() {
       totalRevenue,
       totalTrips: totalTrips + ongoingTrips.length,
       totalPassengers,
-      avgDuration
+      avgDuration,
     };
   };
 
   // Calculate trip volume by hour
   const calculateTripVolume = () => {
     const hourlyData: { [key: string]: { trips: number; passengers: number } } = {};
-    
+
     // Initialize all hours
     for (let i = 6; i <= 19; i++) {
       const hour = i <= 11 ? `${i} AM` : i === 12 ? '12 PM' : `${i - 12} PM`;
@@ -109,11 +107,11 @@ export function Analytics() {
     }
 
     // Aggregate data
-    allTrips.forEach(trip => {
+    allTrips.forEach((trip) => {
       const startTime = new Date(trip.startTime);
       const hour = startTime.getHours();
       const hourLabel = hour <= 11 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`;
-      
+
       if (hourlyData[hourLabel]) {
         hourlyData[hourLabel].trips++;
         hourlyData[hourLabel].passengers += (trip.passengers || []).length;
@@ -123,7 +121,7 @@ export function Analytics() {
     return Object.entries(hourlyData).map(([hour, data]) => ({
       hour,
       trips: data.trips,
-      passengers: data.passengers
+      passengers: data.passengers,
     }));
   };
 
@@ -131,13 +129,13 @@ export function Analytics() {
   const calculateBusPerformance = () => {
     const busStats: { [key: string]: any } = {};
 
-    allTrips.forEach(trip => {
+    allTrips.forEach((trip) => {
       if (!busStats[trip.busId]) {
         busStats[trip.busId] = {
           plate: trip.busPlateNumber,
           trips: 0,
           passengers: 0,
-          revenue: 0
+          revenue: 0,
         };
       }
 
@@ -149,28 +147,26 @@ export function Analytics() {
 
     // Calculate efficiency (avg passengers per trip vs capacity)
     const busPerformance = Object.values(busStats).map((stat: any) => {
-      const bus = buses.find(b => b.id === stat.busId || b.plateNumber === stat.plate);
+      const bus = buses.find((b) => b.id === stat.busId || b.plateNumber === stat.plate);
       const capacity = bus?.maxCapacity || 18;
       const avgPassengers = stat.trips > 0 ? stat.passengers / stat.trips : 0;
       const efficiency = Math.round((avgPassengers / capacity) * 100);
 
       return {
         ...stat,
-        efficiency: Math.min(efficiency, 100)
+        efficiency: Math.min(efficiency, 100),
       };
     });
 
     // Sort by trips and return top 4
-    return busPerformance
-      .sort((a, b) => b.trips - a.trips)
-      .slice(0, 4);
+    return busPerformance.sort((a, b) => b.trips - a.trips).slice(0, 4);
   };
 
   // Calculate revenue by route
   const calculateRevenueByRoute = () => {
     const routeStats: { [key: string]: { trips: number; revenue: number } } = {};
 
-    allTrips.forEach(trip => {
+    allTrips.forEach((trip) => {
       if (!routeStats[trip.route]) {
         routeStats[trip.route] = { trips: 0, revenue: 0 };
       }
@@ -182,12 +178,14 @@ export function Analytics() {
 
     const totalRevenue = Object.values(routeStats).reduce((sum, stat) => sum + stat.revenue, 0);
 
-    return Object.entries(routeStats).map(([route, stats]) => ({
-      route,
-      trips: stats.trips,
-      revenue: stats.revenue,
-      percentage: totalRevenue > 0 ? Math.round((stats.revenue / totalRevenue) * 100) : 0
-    })).sort((a, b) => b.revenue - a.revenue);
+    return Object.entries(routeStats)
+      .map(([route, stats]) => ({
+        route,
+        trips: stats.trips,
+        revenue: stats.revenue,
+        percentage: totalRevenue > 0 ? Math.round((stats.revenue / totalRevenue) * 100) : 0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
   };
 
   if (isLoading) {
@@ -206,82 +204,73 @@ export function Analytics() {
   const busPerformance = calculateBusPerformance();
   const revenueByRoute = calculateRevenueByRoute();
 
-  const maxTrips = Math.max(...tripVolumeData.map(d => d.trips), 1);
-  const maxPassengers = Math.max(...tripVolumeData.map(d => d.passengers), 1);
+  const maxTrips = Math.max(...tripVolumeData.map((d) => d.trips), 1);
+  const maxPassengers = Math.max(...tripVolumeData.map((d) => d.passengers), 1);
 
   const metricsDisplay = [
-    { 
-      label: 'Total Revenue', 
-      value: `₱${metrics.totalRevenue.toLocaleString()}`, 
-      change: metrics.totalRevenue > 0 ? '+' : '0%', 
-      trend: 'up' as const, 
-      icon: DollarSign, 
-      color: 'from-green-500 to-emerald-600' 
+    {
+      label: 'Total Revenue',
+      value: `₱${metrics.totalRevenue.toLocaleString()}`,
+      change: metrics.totalRevenue > 0 ? '+' : '0%',
+      trend: 'up' as const,
+      icon: DollarSign,
+      color: 'from-green-500 to-emerald-600',
     },
-    { 
-      label: 'Total Trips', 
-      value: metrics.totalTrips.toString(), 
-      change: metrics.totalTrips > 0 ? '+' : '0%', 
-      trend: 'up' as const, 
-      icon: Bus, 
-      color: 'from-blue-500 to-cyan-600' 
+    {
+      label: 'Total Trips',
+      value: metrics.totalTrips.toString(),
+      change: metrics.totalTrips > 0 ? '+' : '0%',
+      trend: 'up' as const,
+      icon: Bus,
+      color: 'from-blue-500 to-cyan-600',
     },
-    { 
-      label: 'Total Passengers', 
-      value: metrics.totalPassengers.toLocaleString(), 
-      change: metrics.totalPassengers > 0 ? '+' : '0%', 
-      trend: 'up' as const, 
-      icon: Users, 
-      color: 'from-purple-500 to-pink-600' 
+    {
+      label: 'Total Passengers',
+      value: metrics.totalPassengers.toLocaleString(),
+      change: metrics.totalPassengers > 0 ? '+' : '0%',
+      trend: 'up' as const,
+      icon: Users,
+      color: 'from-purple-500 to-pink-600',
     },
-    { 
-      label: 'Avg Trip Duration', 
-      value: `${metrics.avgDuration} min`, 
-      change: metrics.avgDuration > 0 ? '-' : '0%', 
-      trend: 'down' as const, 
-      icon: Clock, 
-      color: 'from-orange-500 to-red-600' 
-    }
+    {
+      label: 'Avg Trip Duration',
+      value: `${metrics.avgDuration} min`,
+      change: metrics.avgDuration > 0 ? '-' : '0%',
+      trend: 'down' as const,
+      icon: Clock,
+      color: 'from-orange-500 to-red-600',
+    },
   ];
 
   // Calculate insights
   const peakHours = tripVolumeData
-    .filter(d => d.trips > 0)
+    .filter((d) => d.trips > 0)
     .sort((a, b) => b.trips - a.trips)
     .slice(0, 2)
-    .map(d => d.hour)
+    .map((d) => d.hour)
     .join(' & ');
 
-  const avgPassengersPerTrip = metrics.totalTrips > 0 
-    ? (metrics.totalPassengers / metrics.totalTrips).toFixed(1) 
-    : '0';
+  const avgPassengersPerTrip = metrics.totalTrips > 0 ? (metrics.totalPassengers / metrics.totalTrips).toFixed(1) : '0';
 
-  const avgCapacity = buses.length > 0 
-    ? buses.reduce((sum, b) => sum + (b.maxCapacity || 0), 0) / buses.length 
-    : 18;
+  const avgCapacity = buses.length > 0 ? buses.reduce((sum, b) => sum + (b.maxCapacity || 0), 0) / buses.length : 18;
 
-  const capacityUtilization = avgCapacity > 0 
-    ? ((parseFloat(avgPassengersPerTrip) / avgCapacity) * 100).toFixed(1) 
-    : '0';
+  const capacityUtilization =
+    avgCapacity > 0 ? ((parseFloat(avgPassengersPerTrip) / avgCapacity) * 100).toFixed(1) : '0';
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-gray-900 mb-2">Analytics & Insights</h2>
               <p className="text-gray-600">Comprehensive performance metrics from real data</p>
             </div>
-            
+
             {/* Time Range Selector */}
             <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-lg">
-              {timeRanges.map(range => (
+              {timeRanges.map((range) => (
                 <button
                   key={range}
                   onClick={() => setSelectedRange(range)}
@@ -303,22 +292,28 @@ export function Analytics() {
           {metricsDisplay.map((metric, index) => {
             const Icon = metric.icon;
             const TrendIcon = metric.trend === 'up' ? ArrowUpRight : ArrowDownRight;
-            
+
             return (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 1, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1 * index }}
+                transition={{
+                  delay: 0.1 * index,
+                  duration: 0.1,
+                  ease: 'easeOut',
+                }}
                 className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all"
               >
                 <div className={`p-6 bg-gradient-to-r ${metric.color} text-white`}>
                   <div className="flex items-center justify-between mb-3">
                     <Icon className="w-8 h-8" />
                     {metric.change !== '0%' && (
-                      <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
-                        metric.trend === 'up' ? 'bg-white/20' : 'bg-black/20'
-                      }`}>
+                      <div
+                        className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                          metric.trend === 'up' ? 'bg-white/20' : 'bg-black/20'
+                        }`}
+                      >
                         <TrendIcon className="w-3 h-3" />
                         {metric.change}
                       </div>
@@ -348,8 +343,8 @@ export function Analytics() {
               </div>
               <Calendar className="w-6 h-6 text-gray-400" />
             </div>
-            
-            {tripVolumeData.some(d => d.trips > 0) ? (
+
+            {tripVolumeData.some((d) => d.trips > 0) ? (
               <div className="space-y-2">
                 {tripVolumeData.map((data, index) => (
                   <div key={index} className="group">
@@ -419,18 +414,18 @@ export function Analytics() {
                         <div className="text-green-600 text-sm">{route.percentage}% of total</div>
                       </div>
                     </div>
-                    
+
                     <div className="relative h-4 bg-gray-200 rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${route.percentage}%` }}
                         transition={{ duration: 1, delay: 0.8 + index * 0.1 }}
                         className={`absolute inset-y-0 left-0 rounded-full ${
-                          index === 0 
+                          index === 0
                             ? 'bg-gradient-to-r from-indigo-500 to-blue-500'
                             : index === 1
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500'
-                            : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                              ? 'bg-gradient-to-r from-purple-500 to-pink-500'
+                              : 'bg-gradient-to-r from-green-500 to-emerald-500'
                         }`}
                       />
                     </div>
@@ -494,12 +489,17 @@ export function Analytics() {
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
                       <td className="py-4 px-6">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          index === 0 ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' :
-                          index === 1 ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-white' :
-                          index === 2 ? 'bg-gradient-to-r from-orange-300 to-orange-400 text-white' :
-                          'bg-gray-200 text-gray-700'
-                        }`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            index === 0
+                              ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
+                              : index === 1
+                                ? 'bg-gradient-to-r from-gray-300 to-gray-400 text-white'
+                                : index === 2
+                                  ? 'bg-gradient-to-r from-orange-300 to-orange-400 text-white'
+                                  : 'bg-gray-200 text-gray-700'
+                          }`}
+                        >
                           {index + 1}
                         </div>
                       </td>
@@ -522,9 +522,11 @@ export function Analytics() {
                               animate={{ width: `${bus.efficiency}%` }}
                               transition={{ duration: 1, delay: 1.2 + index * 0.1 }}
                               className={`h-2 rounded-full ${
-                                bus.efficiency >= 90 ? 'bg-green-500' :
-                                bus.efficiency >= 80 ? 'bg-yellow-500' :
-                                'bg-orange-500'
+                                bus.efficiency >= 90
+                                  ? 'bg-green-500'
+                                  : bus.efficiency >= 80
+                                    ? 'bg-yellow-500'
+                                    : 'bg-orange-500'
                               }`}
                             />
                           </div>
@@ -550,9 +552,7 @@ export function Analytics() {
             <TrendingUp className="w-10 h-10 mb-4" />
             <h4 className="mb-2">Peak Performance</h4>
             <p className="text-green-100 text-sm">
-              {peakHours 
-                ? `Best hours: ${peakHours}` 
-                : 'No trip data to analyze yet'}
+              {peakHours ? `Best hours: ${peakHours}` : 'No trip data to analyze yet'}
             </p>
           </motion.div>
 

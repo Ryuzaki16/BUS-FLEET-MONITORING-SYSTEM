@@ -1,13 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { busAPI } from '../utils/api';
+import { GPS_ERROR_CODES, GPS_OPTIONS, STORAGE_KEYS } from '../constants/conductor';
 import { Location } from '../types/conductor';
-import { GPS_OPTIONS, GPS_ERROR_CODES, STORAGE_KEYS } from '../constants/conductor';
+import { busAPI } from '../utils/api';
 
 export function useGPSTracking(busId: string | null) {
-  const [isGranted, setIsGranted] = useState(() =>
-    localStorage.getItem(STORAGE_KEYS.GPS_GRANTED) === 'true'
-  );
+  const [isGranted, setIsGranted] = useState(() => localStorage.getItem(STORAGE_KEYS.GPS_GRANTED) === 'true');
 
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
@@ -27,30 +25,36 @@ export function useGPSTracking(busId: string | null) {
     };
   }, [busId]);
 
-  const updateBusLocation = useCallback(async (location: Location) => {
-    if (!busId) return;
-    
-    try {
-      await busAPI.updateLocation(busId, location);
-      console.log('Bus location updated:', location);
-    } catch (error) {
-      console.error('Error updating bus location:', error);
-    }
-  }, [busId]);
+  const updateBusLocation = useCallback(
+    async (location: Location) => {
+      if (!busId) return;
 
-  const handlePositionUpdate = useCallback((position: GeolocationPosition) => {
-    const location: Location = {
-      lat: position.coords.latitude,
-      lng: position.coords.longitude
-    };
-    
-    setCurrentLocation(location);
-    updateBusLocation(location);
-  }, [updateBusLocation]);
+      try {
+        await busAPI.updateLocation(busId, location);
+        console.log('Bus location updated:', location);
+      } catch (error) {
+        console.error('Error updating bus location:', error);
+      }
+    },
+    [busId],
+  );
+
+  const handlePositionUpdate = useCallback(
+    (position: GeolocationPosition) => {
+      const location: Location = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+
+      setCurrentLocation(location);
+      updateBusLocation(location);
+    },
+    [updateBusLocation],
+  );
 
   const handlePositionError = useCallback((error: GeolocationPositionError) => {
     console.error('GPS Error:', error);
-    
+
     switch (error.code) {
       case GPS_ERROR_CODES.PERMISSION_DENIED:
         toast.error('GPS permission denied. Please enable location services.');
@@ -78,11 +82,7 @@ export function useGPSTracking(busId: string | null) {
       return; // Already tracking
     }
 
-    const watchId = navigator.geolocation.watchPosition(
-      handlePositionUpdate,
-      handlePositionError,
-      GPS_OPTIONS
-    );
+    const watchId = navigator.geolocation.watchPosition(handlePositionUpdate, handlePositionError, GPS_OPTIONS);
 
     watchIdRef.current = watchId;
     console.log('GPS tracking started with watch ID:', watchId);
@@ -98,7 +98,7 @@ export function useGPSTracking(busId: string | null) {
 
   const requestPermission = useCallback(async () => {
     setIsRequesting(true);
-    
+
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by your browser');
       setIsRequesting(false);
@@ -110,13 +110,13 @@ export function useGPSTracking(busId: string | null) {
         (position) => {
           const location: Location = {
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
           };
-          
+
           setCurrentLocation(location);
           setIsGranted(true);
           localStorage.setItem(STORAGE_KEYS.GPS_GRANTED, 'true');
-          
+
           toast.success('GPS enabled successfully!');
           startTracking();
           setIsRequesting(false);
@@ -127,7 +127,7 @@ export function useGPSTracking(busId: string | null) {
           setIsRequesting(false);
           resolve(false);
         },
-        GPS_OPTIONS
+        GPS_OPTIONS,
       );
     });
   }, [startTracking, handlePositionError]);
@@ -144,6 +144,6 @@ export function useGPSTracking(busId: string | null) {
     requestPermission,
     skipPermission,
     startTracking,
-    stopTracking
+    stopTracking,
   };
 }

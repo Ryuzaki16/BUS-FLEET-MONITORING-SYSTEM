@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Database, Check, X, AlertCircle } from 'lucide-react';
-import { seedDatabase } from '../utils/seedDatabase';
-import { busAPI } from '../utils/api';
+import { AlertCircle, Check, Database } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { busAPI } from '../utils/api';
+import { seedDatabase } from '../utils/seedDatabase';
 
 export function DatabaseSeeder() {
   const [isSeeding, setIsSeeding] = useState(false);
@@ -17,7 +17,7 @@ export function DatabaseSeeder() {
     try {
       const response = await busAPI.getAll();
       const buses = response.data || [];
-      
+
       if (buses.length === 0) {
         setShowSeeder(true);
       } else {
@@ -64,15 +64,13 @@ export function DatabaseSeeder() {
             <p className="text-gray-600 text-sm">Let's set up your database</p>
           </div>
         </div>
-        
+
         <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
           <div className="flex gap-3">
             <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="text-blue-800 text-sm">
               <p className="font-medium mb-1">Database is empty</p>
-              <p className="text-xs">
-                Click below to populate with sample data including:
-              </p>
+              <p className="text-xs">Click below to populate with sample data including:</p>
               <ul className="text-xs mt-2 space-y-1 ml-4 list-disc">
                 <li>4 sample buses with different routes</li>
                 <li>3 routes with stops and fare information</li>
@@ -81,7 +79,7 @@ export function DatabaseSeeder() {
             </div>
           </div>
         </div>
-        
+
         <div className="flex gap-3">
           <button
             onClick={() => setShowSeeder(false)}

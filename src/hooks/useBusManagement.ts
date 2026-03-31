@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
-import { busAPI } from '../utils/api';
-import { BusInfo, BusStatus } from '../types/conductor';
 import { STORAGE_KEYS } from '../constants/conductor';
+import { BusInfo, BusStatus } from '../types/conductor';
+import { busAPI } from '../utils/api';
 
 export function useBusSelection() {
   const [busInfo, setBusInfo] = useState<BusInfo | null>(null);
@@ -19,10 +19,10 @@ export function useBusSelection() {
     try {
       const response = await busAPI.getAll();
       const buses = response.data || [];
-      
-      const foundBus = buses.find((bus: any) => 
-        bus.plateNumber.toLowerCase().replace(/\s+/g, '') === 
-        busNumberInput.toLowerCase().replace(/\s+/g, '')
+
+      const foundBus = buses.find(
+        (bus: any) =>
+          bus.plateNumber.toLowerCase().replace(/\s+/g, '') === busNumberInput.toLowerCase().replace(/\s+/g, ''),
       );
 
       if (!foundBus) {
@@ -35,13 +35,13 @@ export function useBusSelection() {
         plateNumber: foundBus.plateNumber,
         route: foundBus.route,
         driver: foundBus.driver,
-        capacity: foundBus.maxCapacity
+        capacity: foundBus.maxCapacity,
       };
 
       setBusInfo(busData);
       localStorage.setItem(STORAGE_KEYS.CONDUCTOR_BUS, JSON.stringify(busData));
       toast.success(`Bus ${foundBus.plateNumber} selected!`);
-      
+
       return busData;
     } catch (error) {
       console.error('Error validating bus:', error);
@@ -75,7 +75,7 @@ export function useBusSelection() {
     setBusNumberInput,
     validateBus,
     loadSavedBus,
-    clearBus
+    clearBus,
   };
 }
 
@@ -83,31 +83,34 @@ export function useBusStatus(busInfo: BusInfo | null) {
   const [currentStatus, setCurrentStatus] = useState<BusStatus>('on-time');
   const [statusMessage, setStatusMessage] = useState('');
 
-  const updateStatus = useCallback(async (status: BusStatus, message: string = '') => {
-    if (!busInfo) return false;
-    
-    try {
-      await busAPI.setAlert(busInfo.id, {
-        status,
-        message,
-        plateNumber: busInfo.plateNumber,
-        route: busInfo.route
-      });
-      
-      setCurrentStatus(status);
-      setStatusMessage(message);
-      toast.success('Status updated successfully!');
-      return true;
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error('Failed to update status.');
-      return false;
-    }
-  }, [busInfo]);
+  const updateStatus = useCallback(
+    async (status: BusStatus, message: string = '') => {
+      if (!busInfo) return false;
+
+      try {
+        await busAPI.setAlert(busInfo.id, {
+          status,
+          message,
+          plateNumber: busInfo.plateNumber,
+          route: busInfo.route,
+        });
+
+        setCurrentStatus(status);
+        setStatusMessage(message);
+        toast.success('Status updated successfully!');
+        return true;
+      } catch (error) {
+        console.error('Error updating status:', error);
+        toast.error('Failed to update status.');
+        return false;
+      }
+    },
+    [busInfo],
+  );
 
   return {
     currentStatus,
     statusMessage,
-    updateStatus
+    updateStatus,
   };
 }

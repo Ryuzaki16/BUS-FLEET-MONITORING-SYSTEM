@@ -1,8 +1,8 @@
+import { Package, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Package } from 'lucide-react';
-import { LostItem } from '../../types/conductor';
 import { ITEM_CATEGORIES } from '../../constants/conductor';
+import { LostItem } from '../../types/conductor';
 
 interface LostItemFormModalProps {
   isOpen: boolean;
@@ -11,17 +11,12 @@ interface LostItemFormModalProps {
   onReportItem: (item: LostItem) => Promise<boolean>;
 }
 
-export function LostItemFormModal({
-  isOpen,
-  isLoading,
-  onClose,
-  onReportItem
-}: LostItemFormModalProps) {
+export function LostItemFormModal({ isOpen, isLoading, onClose, onReportItem }: LostItemFormModalProps) {
   const [item, setItem] = useState<LostItem>({
     itemName: '',
     description: '',
     category: 'other',
-    location: ''
+    location: '',
   });
 
   const handleSubmit = async () => {
@@ -32,7 +27,7 @@ export function LostItemFormModal({
         itemName: '',
         description: '',
         category: 'other',
-        location: ''
+        location: '',
       });
       onClose();
     }
@@ -59,19 +54,14 @@ export function LostItemFormModal({
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-gray-900">Report Lost Item</h3>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
-              >
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  Item Name
-                </label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">Item Name</label>
                 <input
                   type="text"
                   value={item.itemName}
@@ -82,9 +72,7 @@ export function LostItemFormModal({
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  Description
-                </label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">Description</label>
                 <textarea
                   value={item.description}
                   onChange={(e) => setItem({ ...item, description: e.target.value })}
@@ -95,15 +83,13 @@ export function LostItemFormModal({
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  Category
-                </label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">Category</label>
                 <select
                   value={item.category}
                   onChange={(e) => setItem({ ...item, category: e.target.value })}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                 >
-                  {ITEM_CATEGORIES.map(category => (
+                  {ITEM_CATEGORIES.map((category) => (
                     <option key={category} value={category}>
                       {category.charAt(0).toUpperCase() + category.slice(1)}
                     </option>
@@ -112,9 +98,7 @@ export function LostItemFormModal({
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  Location Found
-                </label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">Location Found</label>
                 <input
                   type="text"
                   value={item.location}

@@ -1,6 +1,6 @@
+import { Bus, Clock, DollarSign, Download, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
-import { BarChart3, Download, Calendar, TrendingUp, DollarSign, Users, Bus, Clock } from 'lucide-react';
-import { mockTrips, mockBuses } from '../data/mockData';
+import { mockBuses, mockTrips } from '../data/mockData';
 
 export function BarangayView() {
   const [dateRange, setDateRange] = useState('today');
@@ -9,7 +9,7 @@ export function BarangayView() {
   const totalTrips = mockTrips.length + 45; // Mock additional completed trips
   const totalPassengers = mockTrips.reduce((sum, trip) => sum + trip.passengersBoarded, 0) + 234;
   const totalRevenue = mockTrips.reduce((sum, trip) => sum + trip.totalFare, 0) + 5670;
-  const activeFleet = mockBuses.filter(b => b.status === 'active').length;
+  const activeFleet = mockBuses.filter((b) => b.status === 'active').length;
   const averageTripDuration = 38; // minutes
   const peakHours = ['7:00 AM - 9:00 AM', '5:00 PM - 7:00 PM'];
 
@@ -37,14 +37,12 @@ export function BarangayView() {
 
         {/* Date Range Selector */}
         <div className="flex gap-2">
-          {['today', 'week', 'month'].map(range => (
+          {['today', 'week', 'month'].map((range) => (
             <button
               key={range}
               onClick={() => setDateRange(range)}
               className={`px-4 py-2 rounded-lg capitalize ${
-                dateRange === range
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                dateRange === range ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               {range === 'today' ? 'Today' : range === 'week' ? 'This Week' : 'This Month'}
@@ -116,7 +114,7 @@ export function BarangayView() {
               { hour: '12 PM - 2 PM', trips: 7, percentage: 43 },
               { hour: '2 PM - 4 PM', trips: 5, percentage: 31 },
               { hour: '4 PM - 6 PM', trips: 11, percentage: 68 },
-              { hour: '6 PM - 8 PM', trips: 9, percentage: 56 }
+              { hour: '6 PM - 8 PM', trips: 9, percentage: 56 },
             ].map((data, index) => (
               <div key={index}>
                 <div className="flex items-center justify-between text-sm mb-1">
@@ -141,7 +139,7 @@ export function BarangayView() {
             {[
               { route: 'City Center - Barangay Hall', revenue: 3240, trips: 24, color: 'bg-blue-500' },
               { route: 'Market - Terminal', revenue: 2850, trips: 19, color: 'bg-green-500' },
-              { route: 'Coastal Road Loop', revenue: 1580, trips: 8, color: 'bg-purple-500' }
+              { route: 'Coastal Road Loop', revenue: 1580, trips: 8, color: 'bg-purple-500' },
             ].map((data, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -186,17 +184,21 @@ export function BarangayView() {
                 const passengers = Math.floor(Math.random() * 100) + 40;
                 const revenue = passengers * 15;
                 const efficiency = Math.floor(Math.random() * 30) + 70;
-                
+
                 return (
                   <tr key={bus.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 px-4 text-gray-900">{bus.plateNumber}</td>
                     <td className="py-3 px-4 text-gray-600">{bus.driver}</td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        bus.status === 'active' ? 'bg-green-100 text-green-700' :
-                        bus.status === 'idle' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          bus.status === 'active'
+                            ? 'bg-green-100 text-green-700'
+                            : bus.status === 'idle'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
+                        }`}
+                      >
                         {bus.status}
                       </span>
                     </td>
@@ -208,9 +210,7 @@ export function BarangayView() {
                         <div className="flex-1 bg-gray-200 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full ${
-                              efficiency >= 85 ? 'bg-green-500' :
-                              efficiency >= 70 ? 'bg-yellow-500' :
-                              'bg-red-500'
+                              efficiency >= 85 ? 'bg-green-500' : efficiency >= 70 ? 'bg-yellow-500' : 'bg-red-500'
                             }`}
                             style={{ width: `${efficiency}%` }}
                           />

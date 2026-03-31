@@ -1,7 +1,7 @@
+import { CheckCircle, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, CheckCircle } from 'lucide-react';
-import { COMMON_ROUTES, BOARDING_POINTS, DESTINATIONS } from '../../constants/conductor';
+import { BOARDING_POINTS, COMMON_ROUTES, DESTINATIONS } from '../../constants/conductor';
 
 interface TicketFormModalProps {
   isOpen: boolean;
@@ -18,23 +18,16 @@ export interface TicketFormData {
   paymentMethod: 'cash' | 'digital';
 }
 
-export function TicketFormModal({
-  isOpen,
-  isLoading,
-  onClose,
-  onIssueTicket
-}: TicketFormModalProps) {
+export function TicketFormModal({ isOpen, isLoading, onClose, onIssueTicket }: TicketFormModalProps) {
   const [boardingPoint, setBoardingPoint] = useState<string>(BOARDING_POINTS[0]);
   const [destination, setDestination] = useState<string>(DESTINATIONS[0]);
   const [fare, setFare] = useState(45);
 
   const handleDestinationChange = (newDestination: string) => {
     setDestination(newDestination);
-    
+
     // Auto-calculate fare based on route
-    const route = COMMON_ROUTES.find(
-      r => r.from === boardingPoint && r.to === newDestination
-    );
+    const route = COMMON_ROUTES.find((r) => r.from === boardingPoint && r.to === newDestination);
     if (route) {
       setFare(route.fare);
     }
@@ -46,7 +39,7 @@ export function TicketFormModal({
       boardingPoint,
       destination,
       fare,
-      paymentMethod: 'cash'
+      paymentMethod: 'cash',
     };
 
     const success = await onIssueTicket(ticketData);
@@ -78,53 +71,46 @@ export function TicketFormModal({
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-gray-900">Issue New Ticket</h3>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
-              >
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  Boarding Point
-                </label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">Boarding Point</label>
                 <select
                   value={boardingPoint}
                   onChange={(e) => setBoardingPoint(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                 >
-                  {BOARDING_POINTS.map(point => (
-                    <option key={point} value={point}>{point}</option>
+                  {BOARDING_POINTS.map((point) => (
+                    <option key={point} value={point}>
+                      {point}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  Destination
-                </label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">Destination</label>
                 <select
                   value={destination}
                   onChange={(e) => handleDestinationChange(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                 >
-                  {DESTINATIONS.map(dest => (
-                    <option key={dest} value={dest}>{dest}</option>
+                  {DESTINATIONS.map((dest) => (
+                    <option key={dest} value={dest}>
+                      {dest}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  Fare
-                </label>
+                <label className="block text-gray-700 text-sm font-medium mb-2">Fare</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                    ₱
-                  </span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">₱</span>
                   <input
                     type="number"
                     value={fare}

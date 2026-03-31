@@ -1,6 +1,6 @@
+import { AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { Button } from './ui/button';
-import { AlertCircle } from 'lucide-react';
 
 export default function NotFound() {
   const navigate = useNavigate();
@@ -18,9 +18,7 @@ export default function NotFound() {
           <Button onClick={() => navigate('/conductor')} variant="outline">
             Conductor Portal
           </Button>
-          <Button onClick={() => navigate('/passenger')}>
-            Passenger Portal
-          </Button>
+          <Button onClick={() => navigate('/passenger')}>Passenger Portal</Button>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { X, CheckCircle, Clock, Info, AlertOctagon } from 'lucide-react';
+import { AlertOctagon, CheckCircle, Clock, Info, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { BusStatus } from '../../types/conductor';
 
 interface StatusUpdateModalProps {
@@ -9,40 +9,35 @@ interface StatusUpdateModalProps {
   onUpdateStatus: (status: BusStatus, message?: string) => void;
 }
 
-export function StatusUpdateModal({
-  isOpen,
-  currentStatus,
-  onClose,
-  onUpdateStatus
-}: StatusUpdateModalProps) {
+export function StatusUpdateModal({ isOpen, currentStatus, onClose, onUpdateStatus }: StatusUpdateModalProps) {
   const statusOptions = [
     {
       status: 'on-time' as BusStatus,
       icon: <CheckCircle className="w-8 h-8 text-green-600" />,
       label: 'On Time',
-      color: 'green'
+      color: 'green',
     },
     {
       status: 'delayed' as BusStatus,
       icon: <Clock className="w-8 h-8 text-yellow-600" />,
       label: 'Delayed',
       color: 'yellow',
-      message: 'Heavy traffic'
+      message: 'Heavy traffic',
     },
     {
       status: 'stopped' as BusStatus,
       icon: <Info className="w-8 h-8 text-blue-600" />,
       label: 'Stopped',
       color: 'blue',
-      message: 'Taking a break'
+      message: 'Taking a break',
     },
     {
       status: 'emergency' as BusStatus,
       icon: <AlertOctagon className="w-8 h-8 text-red-600" />,
       label: 'Emergency',
       color: 'red',
-      message: 'Emergency situation'
-    }
+      message: 'Emergency situation',
+    },
   ];
 
   return (
@@ -64,10 +59,7 @@ export function StatusUpdateModal({
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-gray-900">Update Bus Status</h3>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
-              >
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -82,9 +74,7 @@ export function StatusUpdateModal({
                   }`}
                 >
                   {option.icon}
-                  <span className="text-sm font-medium text-gray-900">
-                    {option.label}
-                  </span>
+                  <span className="text-sm font-medium text-gray-900">{option.label}</span>
                 </button>
               ))}
             </div>

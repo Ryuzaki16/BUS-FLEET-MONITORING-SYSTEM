@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
-import { tripAPI, passengerAPI } from '../utils/api';
-import { Passenger, BusInfo } from '../types/conductor';
+import { BusInfo, Passenger } from '../types/conductor';
+import { passengerAPI, tripAPI } from '../utils/api';
 
 export function useTripManagement(busInfo: BusInfo | null) {
   const [isActive, setIsActive] = useState(false);
@@ -13,17 +13,19 @@ export function useTripManagement(busInfo: BusInfo | null) {
     try {
       const response = await tripAPI.getOngoing();
       const activeTrip = response.data.find((trip: any) => trip.busId === busId);
-      
+
       if (activeTrip) {
         setIsActive(true);
         setCurrentTripId(activeTrip.id);
-        
+
         const passengersResponse = await passengerAPI.getByTrip(activeTrip.id);
-        setPassengers(passengersResponse.data.map((p: any) => ({
-          ...p,
-          timestamp: new Date(p.timestamp)
-        })));
-        
+        setPassengers(
+          passengersResponse.data.map((p: any) => ({
+            ...p,
+            timestamp: new Date(p.timestamp),
+          })),
+        );
+
         toast.info('Active trip detected and loaded!');
       }
     } catch (error) {
@@ -64,7 +66,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
 
   const endTrip = useCallback(async () => {
     if (!currentTripId) return false;
-    
+
     setIsLoading(true);
     try {
       await tripAPI.end(currentTripId);
@@ -82,51 +84,57 @@ export function useTripManagement(busInfo: BusInfo | null) {
     }
   }, [currentTripId]);
 
-  const addPassenger = useCallback(async (passenger: Omit<Passenger, 'id' | 'timestamp'>) => {
-    if (!currentTripId) {
-      toast.error('No active trip. Please start a trip first.');
-      return false;
-    }
+  const addPassenger = useCallback(
+    async (passenger: Omit<Passenger, 'id' | 'timestamp'>) => {
+      if (!currentTripId) {
+        toast.error('No active trip. Please start a trip first.');
+        return false;
+      }
 
-    setIsLoading(true);
-    try {
-      const passengerId = `TKT-${Date.now()}`;
-      const newPassenger = {
-        id: passengerId,
-        ...passenger,
-      };
+      setIsLoading(true);
+      try {
+        const passengerId = `TKT-${Date.now()}`;
+        const newPassenger = {
+          id: passengerId,
+          ...passenger,
+        };
 
-      await passengerAPI.add(currentTripId, newPassenger);
-      
-      setPassengers([...passengers, { ...newPassenger, timestamp: new Date() }]);
-      toast.success('Ticket issued successfully!');
-      return true;
-    } catch (error) {
-      console.error('Error issuing ticket:', error);
-      toast.error('Failed to issue ticket. Please try again.');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentTripId, passengers]);
+        await passengerAPI.add(currentTripId, newPassenger);
 
-  const removePassenger = useCallback(async (passengerId: string) => {
-    if (!currentTripId) return false;
-    
-    setIsLoading(true);
-    try {
-      await passengerAPI.remove(currentTripId, passengerId);
-      setPassengers(passengers.filter(p => p.id !== passengerId));
-      toast.success('Passenger removed successfully!');
-      return true;
-    } catch (error) {
-      console.error('Error removing passenger:', error);
-      toast.error('Failed to remove passenger.');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentTripId, passengers]);
+        setPassengers([...passengers, { ...newPassenger, timestamp: new Date() }]);
+        toast.success('Ticket issued successfully!');
+        return true;
+      } catch (error) {
+        console.error('Error issuing ticket:', error);
+        toast.error('Failed to issue ticket. Please try again.');
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [currentTripId, passengers],
+  );
+
+  const removePassenger = useCallback(
+    async (passengerId: string) => {
+      if (!currentTripId) return false;
+
+      setIsLoading(true);
+      try {
+        await passengerAPI.remove(currentTripId, passengerId);
+        setPassengers(passengers.filter((p) => p.id !== passengerId));
+        toast.success('Passenger removed successfully!');
+        return true;
+      } catch (error) {
+        console.error('Error removing passenger:', error);
+        toast.error('Failed to remove passenger.');
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [currentTripId, passengers],
+  );
 
   const getTotalRevenue = useCallback(() => {
     return passengers.reduce((sum, p) => sum + p.fare, 0);
@@ -142,6 +150,6 @@ export function useTripManagement(busInfo: BusInfo | null) {
     endTrip,
     addPassenger,
     removePassenger,
-    getTotalRevenue
+    getTotalRevenue,
   };
 }

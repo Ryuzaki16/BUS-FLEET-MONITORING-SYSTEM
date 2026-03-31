@@ -17,23 +17,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { busAPI, lostItemAPI, passengerAPI, tripAPI } from '../utils/api'
+import { Passenger } from '../types'
 
-interface Passenger {
-  id: string
-  ticketNumber: string
-  boardingPoint: string
-  destination: string
-  fare: number
-  timestamp: Date | string
-  paymentMethod: 'cash' | 'digital'
-  id: string;
-  ticketNumber: string;
-  boardingPoint: string;
-  destination: string;
-  fare: number;
-  timestamp: Date | string;
-  paymentMethod: string;
-}
 
 export function ConductorPortal() {
   const [tripActive, setTripActive] = useState(false)

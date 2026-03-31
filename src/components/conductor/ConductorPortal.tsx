@@ -1,39 +1,32 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
 import { LogOut } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 // Hooks
+import { useBusSelection, useBusStatus } from '../../hooks/useBusManagement';
 import { useGPSTracking } from '../../hooks/useGPSTracking';
 import { useTripManagement } from '../../hooks/useTripManagement';
-import { useBusSelection, useBusStatus } from '../../hooks/useBusManagement';
 
 // Components
 import { BusSelectionScreen } from './BusSelectionScreen';
 import { GPSPermissionModal } from './GPSPermissionModal';
-import { TripCard } from './TripCard';
-import { TripActions } from './TripActions';
-import { PassengerList } from './PassengerList';
-import { TicketFormModal, TicketFormData } from './TicketFormModal';
-import { StatusUpdateModal } from './StatusUpdateModal';
 import { LostItemFormModal } from './LostItemFormModal';
+import { PassengerList } from './PassengerList';
+import { StatusUpdateModal } from './StatusUpdateModal';
+import { TicketFormData, TicketFormModal } from './TicketFormModal';
+import { TripActions } from './TripActions';
+import { TripCard } from './TripCard';
 
 // Types
+import { STORAGE_KEYS } from '../../constants/conductor';
 import { BusStatus, LostItem } from '../../types/conductor';
 import { lostItemAPI } from '../../utils/api';
-import { STORAGE_KEYS } from '../../constants/conductor';
 
 export function ConductorPortal() {
   // Bus Management
-  const {
-    busInfo,
-    busNumberInput,
-    isValidating,
-    setBusNumberInput,
-    validateBus,
-    loadSavedBus,
-    clearBus
-  } = useBusSelection();
+  const { busInfo, busNumberInput, isValidating, setBusNumberInput, validateBus, loadSavedBus, clearBus } =
+    useBusSelection();
 
   // GPS Tracking
   const {
@@ -41,7 +34,7 @@ export function ConductorPortal() {
     currentLocation,
     isRequesting: isRequestingGps,
     requestPermission: requestGpsPermission,
-    skipPermission: skipGps
+    skipPermission: skipGps,
   } = useGPSTracking(busInfo?.id || null);
 
   // Trip Management
@@ -54,7 +47,7 @@ export function ConductorPortal() {
     endTrip,
     addPassenger,
     removePassenger,
-    getTotalRevenue
+    getTotalRevenue,
   } = useTripManagement(busInfo);
 
   // Bus Status
@@ -72,9 +65,7 @@ export function ConductorPortal() {
     const savedBus = loadSavedBus();
     if (savedBus) {
       setBusSelected(true);
-      const alreadyHandled = ['true', 'skipped'].includes(
-        localStorage.getItem(STORAGE_KEYS.GPS_GRANTED) ?? ''
-      );
+      const alreadyHandled = ['true', 'skipped'].includes(localStorage.getItem(STORAGE_KEYS.GPS_GRANTED) ?? '');
       setShowGpsModal(!alreadyHandled);
       loadActiveTrip(savedBus.id);
     }
@@ -162,17 +153,11 @@ export function ConductorPortal() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-3 sm:p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 md:mb-6"
-        >
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-gray-900 mb-1 md:mb-2">Conductor Dashboard</h2>
-              <p className="text-gray-600 text-sm md:text-base">
-                Issue tickets and manage your trip
-              </p>
+              <p className="text-gray-600 text-sm md:text-base">Issue tickets and manage your trip</p>
             </div>
             <button
               onClick={handleChangeBus}
@@ -208,10 +193,7 @@ export function ConductorPortal() {
               onReportLostItem={() => setShowLostItemForm(true)}
             />
 
-            <PassengerList
-              passengers={passengers}
-              onRemovePassenger={removePassenger}
-            />
+            <PassengerList passengers={passengers} onRemovePassenger={removePassenger} />
           </>
         ) : (
           <NoActiveTripPlaceholder busPlateNumber={busInfo.plateNumber} />
@@ -265,7 +247,7 @@ function NoActiveTripPlaceholder({ busPlateNumber }: NoActiveTripPlaceholderProp
       <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400"
         >
           ⏱️

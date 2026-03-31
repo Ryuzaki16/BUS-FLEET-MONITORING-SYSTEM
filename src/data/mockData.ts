@@ -1,4 +1,4 @@
-import { Bus, Trip, Route, LostAndFoundItem } from '../types';
+import { Bus, LostAndFoundItem, Route, Trip } from '../types';
 
 export const mockBuses: Bus[] = [
   {
@@ -12,10 +12,10 @@ export const mockBuses: Bus[] = [
     location: {
       lat: 14.5995,
       lng: 120.9842,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     },
     currentTrip: 'trip1',
-    qrCodeId: 'QR-ABC1234-F8E9D2'
+    qrCodeId: 'QR-ABC1234-F8E9D2',
   },
   {
     id: 'bus2',
@@ -28,10 +28,10 @@ export const mockBuses: Bus[] = [
     location: {
       lat: 14.6042,
       lng: 120.9822,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     },
     currentTrip: 'trip2',
-    qrCodeId: 'QR-XYZ5678-A3B7C1'
+    qrCodeId: 'QR-XYZ5678-A3B7C1',
   },
   {
     id: 'bus3',
@@ -44,9 +44,9 @@ export const mockBuses: Bus[] = [
     location: {
       lat: 14.5935,
       lng: 120.9862,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     },
-    qrCodeId: 'QR-DEF9012-D4E6F8'
+    qrCodeId: 'QR-DEF9012-D4E6F8',
   },
   {
     id: 'bus4',
@@ -59,10 +59,10 @@ export const mockBuses: Bus[] = [
     location: {
       lat: 14.5895,
       lng: 120.9802,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     },
-    qrCodeId: 'QR-GHI3456-B2C9E5'
-  }
+    qrCodeId: 'QR-GHI3456-B2C9E5',
+  },
 ];
 
 export const mockTrips: Trip[] = [
@@ -83,7 +83,7 @@ export const mockTrips: Trip[] = [
         time: new Date(Date.now() - 1800000),
         passengersOn: 8,
         passengersOff: 0,
-        fare: 120
+        fare: 120,
       },
       {
         id: 'stop2',
@@ -91,7 +91,7 @@ export const mockTrips: Trip[] = [
         time: new Date(Date.now() - 1200000),
         passengersOn: 5,
         passengersOff: 2,
-        fare: 75
+        fare: 75,
       },
       {
         id: 'stop3',
@@ -99,9 +99,9 @@ export const mockTrips: Trip[] = [
         time: new Date(Date.now() - 600000),
         passengersOn: 4,
         passengersOff: 3,
-        fare: 60
-      }
-    ]
+        fare: 60,
+      },
+    ],
   },
   {
     id: 'trip2',
@@ -120,7 +120,7 @@ export const mockTrips: Trip[] = [
         time: new Date(Date.now() - 900000),
         passengersOn: 6,
         passengersOff: 0,
-        fare: 90
+        fare: 90,
       },
       {
         id: 'stop5',
@@ -128,10 +128,10 @@ export const mockTrips: Trip[] = [
         time: new Date(Date.now() - 450000),
         passengersOn: 4,
         passengersOff: 2,
-        fare: 60
-      }
-    ]
-  }
+        fare: 60,
+      },
+    ],
+  },
 ];
 
 export const mockRoutes: Route[] = [
@@ -142,7 +142,7 @@ export const mockRoutes: Route[] = [
     destination: 'Barangay Hall',
     stops: ['City Center Terminal', 'Main Street', 'Market Area', 'Church Plaza', 'School Zone', 'Barangay Hall'],
     baseFare: 15,
-    estimatedDuration: 45
+    estimatedDuration: 45,
   },
   {
     id: 'route2',
@@ -151,7 +151,7 @@ export const mockRoutes: Route[] = [
     destination: 'Transport Terminal',
     stops: ['Public Market', 'Church Plaza', 'City Hall', 'Main Street', 'Transport Terminal'],
     baseFare: 15,
-    estimatedDuration: 30
+    estimatedDuration: 30,
   },
   {
     id: 'route3',
@@ -160,8 +160,8 @@ export const mockRoutes: Route[] = [
     destination: 'Pier Area',
     stops: ['Pier Area', 'Beach Resort', 'Fishing Village', 'Lighthouse', 'Port Gate', 'Pier Area'],
     baseFare: 20,
-    estimatedDuration: 60
-  }
+    estimatedDuration: 60,
+  },
 ];
 
 export const mockLostAndFoundItems: LostAndFoundItem[] = [

@@ -1,5 +1,5 @@
+import { AlertTriangle, Package, Plus, Ticket, Users } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Plus, Users, Ticket, AlertTriangle, Package } from 'lucide-react';
 
 interface TripActionsProps {
   passengerCount: number;
@@ -14,7 +14,7 @@ export function TripActions({
   totalRevenue,
   onIssueTicket,
   onUpdateStatus,
-  onReportLostItem
+  onReportLostItem,
 }: TripActionsProps) {
   return (
     <>
@@ -32,12 +32,8 @@ export function TripActions({
               <Plus className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
             </div>
             <div className="text-left">
-              <h3 className="text-white text-lg sm:text-xl md:text-2xl mb-0.5 sm:mb-1">
-                Issue New Ticket
-              </h3>
-              <p className="text-green-100 text-sm sm:text-base md:text-lg">
-                Tap to add a passenger
-              </p>
+              <h3 className="text-white text-lg sm:text-xl md:text-2xl mb-0.5 sm:mb-1">Issue New Ticket</h3>
+              <p className="text-green-100 text-sm sm:text-base md:text-lg">Tap to add a passenger</p>
             </div>
           </div>
         </motion.button>
@@ -95,9 +91,7 @@ function StatCard({ icon, value, label, delay }: StatCardProps) {
       transition={{ delay }}
       className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg"
     >
-      <div className="flex items-center justify-between mb-2">
-        {icon}
-      </div>
+      <div className="flex items-center justify-between mb-2">{icon}</div>
       <div className="text-2xl sm:text-3xl text-gray-900 mb-1">{value}</div>
       <div className="text-gray-600 text-sm sm:text-base">{label}</div>
     </motion.div>
@@ -121,12 +115,12 @@ function ActionButton({ icon, label, gradient, onClick, delay }: ActionButtonPro
       onClick={onClick}
       className="bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all flex flex-col items-center gap-2 sm:gap-3"
     >
-      <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center`}>
+      <div
+        className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center`}
+      >
         {icon}
       </div>
-      <span className="text-gray-900 text-sm sm:text-base font-medium text-center">
-        {label}
-      </span>
+      <span className="text-gray-900 text-sm sm:text-base font-medium text-center">{label}</span>
     </motion.button>
   );
 }

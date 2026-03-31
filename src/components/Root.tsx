@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { Toaster } from './ui/sonner';
 
 export default function Root() {
