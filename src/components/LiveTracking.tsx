@@ -1,78 +1,73 @@
-import { useState, useEffect } from 'react';
-import { Bus, MapPin, Users, Clock, Navigation, AlertCircle, Maximize2, Radio } from 'lucide-react';
-import { motion } from 'motion/react';
-import { Bus as BusType } from '../types';
-import { MapView } from './MapView';
-import { busAPI, tripAPI } from '../utils/api';
-import { toast } from 'sonner';
+import { Bus, Clock, MapPin, Maximize2, Navigation, Radio, Users } from 'lucide-react'
+import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { Bus as BusType } from '../types'
+import { busAPI } from '../utils/api'
+import { MapView } from './MapView'
 
 export function LiveTracking() {
-  const [buses, setBuses] = useState<BusType[]>([]);
-  const [selectedBus, setSelectedBus] = useState<BusType | null>(null);
-  const [mapZoom, setMapZoom] = useState(false);
-  const [useRealMap, setUseRealMap] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [buses, setBuses] = useState<BusType[]>([])
+  const [selectedBus, setSelectedBus] = useState<BusType | null>(null)
+  const [mapZoom, setMapZoom] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    loadBuses();
-    
-    // Refresh bus data every 5 seconds
-    const interval = setInterval(() => {
-      loadBuses();
-    }, 5000);
+    loadBuses()
 
-    return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(() => {
+      loadBuses()
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   const loadBuses = async () => {
     try {
-      const response = await busAPI.getAll();
-      const busesData = response.data || [];
-      
-      // Convert date strings to Date objects
-      const formattedBuses = busesData.map((bus: any) => ({
+      const response = await busAPI.getAll()
+      const busesData: BusType[] = response.data || []
+
+      const formattedBuses: BusType[] = busesData.map((bus: BusType) => ({
         ...bus,
         location: {
           ...bus.location,
-          lastUpdated: bus.location?.lastUpdated ? new Date(bus.location.lastUpdated) : new Date()
-        }
-      }));
-      
-      setBuses(formattedBuses);
-      
-      // Set first bus as selected if none selected
-      if (!selectedBus && formattedBuses.length > 0) {
-        setSelectedBus(formattedBuses[0]);
-      }
-      
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error loading buses:', error);
-      // Don't show error toast if it's first load - just set empty array
-      if (buses.length > 0) {
-        toast.error('Failed to refresh bus data');
-      }
-      setIsLoading(false);
-    }
-  };
+          lastUpdated: bus.location?.lastUpdated ? new Date(bus.location.lastUpdated) : new Date(),
+        },
+      }))
 
-  const activeBuses = buses.filter(b => b.status === 'active').length;
-  const totalPassengers = buses.reduce((sum, bus) => sum + bus.currentPassengers, 0);
+      setBuses(formattedBuses)
+
+      setSelectedBus((prev) => {
+        if (!formattedBuses.length) return null
+        if (!prev) return formattedBuses[0]
+
+        const updated = formattedBuses.find((bus: BusType) => bus.id === prev.id)
+        return updated ?? formattedBuses[0]
+      })
+
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Error loading buses:', error)
+
+      if (buses.length > 0) {
+        toast.error('Failed to refresh bus data')
+      }
+
+      setIsLoading(false)
+    }
+  }
+
+  const activeBuses = buses.filter((bus) => bus.status === 'active').length
+  const totalPassengers = buses.reduce((sum, bus) => sum + bus.currentPassengers, 0)
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <h2 className="text-gray-900 mb-2">Live GPS Tracking</h2>
           <p className="text-gray-600">Real-time monitoring of all buses on the Dasmariñas-Alabang route</p>
         </motion.div>
 
-        {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -89,7 +84,9 @@ export function LiveTracking() {
                 <span className="text-green-600 text-xs">Live</span>
               </div>
             </div>
-            <div className="text-3xl text-gray-900 mb-1">{activeBuses}/{buses.length}</div>
+            <div className="text-3xl text-gray-900 mb-1">
+              {activeBuses}/{buses.length}
+            </div>
             <div className="text-gray-600 text-sm">Active Buses</div>
           </motion.div>
 
@@ -133,9 +130,7 @@ export function LiveTracking() {
           </motion.div>
         </div>
 
-        {/* Main Content */}
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Map View */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -152,16 +147,12 @@ export function LiveTracking() {
                   <p className="text-gray-600 text-sm">Interactive GPS tracking enabled</p>
                 </div>
               </div>
-              <button
-                onClick={() => setMapZoom(!mapZoom)}
-                className="p-2 hover:bg-white rounded-lg transition-colors"
-              >
+              <button onClick={() => setMapZoom(!mapZoom)} className="p-2 hover:bg-white rounded-lg transition-colors">
                 <Maximize2 className="w-5 h-5 text-gray-600" />
               </button>
             </div>
 
-            {/* Real Interactive Map */}
-            <MapView 
+            <MapView
               buses={buses}
               selectedBus={selectedBus}
               onBusSelect={setSelectedBus}
@@ -169,7 +160,6 @@ export function LiveTracking() {
             />
           </motion.div>
 
-          {/* Bus List */}
           {!mapZoom && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -181,72 +171,87 @@ export function LiveTracking() {
                 <h3 className="text-gray-900">Fleet Status</h3>
                 <p className="text-gray-600 text-sm">{activeBuses} buses active now</p>
               </div>
-              
+
               <div className="p-4 space-y-3 max-h-[500px] overflow-y-auto">
-                {buses.map(bus => (
-                  <button
-                    key={bus.id}
-                    onClick={() => setSelectedBus(bus)}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                      selectedBus?.id === bus.id
-                        ? 'border-indigo-500 bg-gradient-to-r from-indigo-50 to-blue-50 shadow-lg'
-                        : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                          bus.status === 'active' ? 'bg-gradient-to-br from-green-500 to-emerald-600' :
-                          bus.status === 'idle' ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
-                          'bg-gradient-to-br from-red-500 to-pink-600'
-                        }`}>
-                          <Bus className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-gray-900">{bus.plateNumber}</div>
-                          <div className="text-gray-600 text-sm">{bus.driver}</div>
-                        </div>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs ${
-                        bus.status === 'active' ? 'bg-green-100 text-green-700' :
-                        bus.status === 'idle' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {bus.status}
-                      </span>
-                    </div>
+                {buses.map((bus) => {
+                  const maxCapacity = bus.maxCapacity || 1
+                  const loadRatio = bus.currentPassengers / maxCapacity
 
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Passengers</span>
-                        <span className="text-gray-900">{bus.currentPassengers}/{bus.maxCapacity}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all ${
-                            bus.currentPassengers / bus.maxCapacity < 0.5 ? 'bg-green-500' :
-                            bus.currentPassengers / bus.maxCapacity < 0.8 ? 'bg-yellow-500' :
-                            'bg-red-500'
+                  return (
+                    <button
+                      key={bus.id}
+                      onClick={() => setSelectedBus(bus)}
+                      className={`cursor-pointer w-full text-left p-4 rounded-xl border-2 transition-all ${
+                        selectedBus?.id === bus.id
+                          ? 'border-indigo-500 bg-gradient-to-r from-indigo-50 to-blue-50 shadow-lg'
+                          : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                              bus.status === 'active'
+                                ? 'bg-gradient-to-br from-green-500 to-emerald-600'
+                                : bus.status === 'idle'
+                                  ? 'bg-gradient-to-br from-yellow-500 to-orange-600'
+                                  : 'bg-gradient-to-br from-red-500 to-pink-600'
+                            }`}
+                          >
+                            <Bus className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <div className="text-gray-900">{bus.plateNumber}</div>
+                            <div className="text-gray-600 text-sm">{bus.driver}</div>
+                          </div>
+                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs ${
+                            bus.status === 'active'
+                              ? 'bg-green-100 text-green-700'
+                              : bus.status === 'idle'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-red-100 text-red-700'
                           }`}
-                          style={{ width: `${(bus.currentPassengers / bus.maxCapacity) * 100}%` }}
-                        />
+                        >
+                          {bus.status}
+                        </span>
                       </div>
 
-                      {bus.status === 'active' && (
-                        <div className="flex items-center gap-2 text-xs text-gray-600 mt-2">
-                          <Radio className="w-3 h-3 text-green-500" />
-                          <span>GPS: {bus.location.lat.toFixed(4)}, {bus.location.lng.toFixed(4)}</span>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Passengers</span>
+                          <span className="text-gray-900">
+                            {bus.currentPassengers}/{maxCapacity}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
+
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all ${
+                              loadRatio < 0.5 ? 'bg-green-500' : loadRatio < 0.8 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${Math.min(loadRatio * 100, 100)}%` }}
+                          />
+                        </div>
+
+                        {bus.status === 'active' && (
+                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-2">
+                            <Radio className="w-3 h-3 text-green-500" />
+                            <span>
+                              GPS: {bus.location.lat.toFixed(4)}, {bus.location.lng.toFixed(4)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             </motion.div>
           )}
         </div>
 
-        {/* Selected Bus Details */}
         {selectedBus && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -264,11 +269,15 @@ export function LiveTracking() {
                     <p className="text-indigo-100">{selectedBus.driver}</p>
                   </div>
                 </div>
-                <span className={`px-4 py-2 rounded-full text-sm ${
-                  selectedBus.status === 'active' ? 'bg-green-500' :
-                  selectedBus.status === 'idle' ? 'bg-yellow-500' :
-                  'bg-red-500'
-                }`}>
+                <span
+                  className={`px-4 py-2 rounded-full text-sm ${
+                    selectedBus.status === 'active'
+                      ? 'bg-green-500'
+                      : selectedBus.status === 'idle'
+                        ? 'bg-yellow-500'
+                        : 'bg-red-500'
+                  }`}
+                >
                   {selectedBus.status.toUpperCase()}
                 </span>
               </div>
@@ -294,22 +303,31 @@ export function LiveTracking() {
                 <div className="space-y-3">
                   <div>
                     <label className="text-gray-600 text-sm">Current Load</label>
-                    <p className="text-gray-900">{selectedBus.currentPassengers} / {selectedBus.maxCapacity} passengers</p>
+                    <p className="text-gray-900">
+                      {selectedBus.currentPassengers} / {selectedBus.maxCapacity || 1} passengers
+                    </p>
                   </div>
                   <div>
                     <label className="text-gray-600 text-sm">Capacity</label>
                     <div className="w-full bg-gray-200 rounded-full h-3 mt-1">
                       <div
                         className={`h-3 rounded-full ${
-                          selectedBus.currentPassengers / selectedBus.maxCapacity < 0.5 ? 'bg-green-500' :
-                          selectedBus.currentPassengers / selectedBus.maxCapacity < 0.8 ? 'bg-yellow-500' :
-                          'bg-red-500'
+                          selectedBus.currentPassengers / (selectedBus.maxCapacity || 1) < 0.5
+                            ? 'bg-green-500'
+                            : selectedBus.currentPassengers / (selectedBus.maxCapacity || 1) < 0.8
+                              ? 'bg-yellow-500'
+                              : 'bg-red-500'
                         }`}
-                        style={{ width: `${(selectedBus.currentPassengers / selectedBus.maxCapacity) * 100}%` }}
+                        style={{
+                          width: `${Math.min(
+                            (selectedBus.currentPassengers / (selectedBus.maxCapacity || 1)) * 100,
+                            100,
+                          )}%`,
+                        }}
                       />
                     </div>
                     <p className="text-xs text-gray-600 mt-1">
-                      {((selectedBus.currentPassengers / selectedBus.maxCapacity) * 100).toFixed(0)}% full
+                      {((selectedBus.currentPassengers / (selectedBus.maxCapacity || 1)) * 100).toFixed(0)}% full
                     </p>
                   </div>
                 </div>
@@ -320,11 +338,17 @@ export function LiveTracking() {
                 <div className="space-y-3">
                   <div>
                     <label className="text-gray-600 text-sm">Coordinates</label>
-                    <p className="text-gray-900 text-sm">{selectedBus.location.lat.toFixed(6)}, {selectedBus.location.lng.toFixed(6)}</p>
+                    <p className="text-gray-900 text-sm">
+                      {selectedBus.location.lat.toFixed(6)}, {selectedBus.location.lng.toFixed(6)}
+                    </p>
                   </div>
                   <div>
                     <label className="text-gray-600 text-sm">Last Update</label>
-                    <p className="text-gray-900">{selectedBus.location.lastUpdated.toLocaleTimeString()}</p>
+                    <p className="text-gray-900">
+                      {selectedBus.location.lastUpdated instanceof Date
+                        ? selectedBus.location.lastUpdated.toLocaleTimeString()
+                        : new Date(selectedBus.location.lastUpdated).toLocaleTimeString()}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2 text-green-600">
                     <Radio className="w-4 h-4" />
@@ -337,5 +361,5 @@ export function LiveTracking() {
         )}
       </div>
     </div>
-  );
+  )
 }

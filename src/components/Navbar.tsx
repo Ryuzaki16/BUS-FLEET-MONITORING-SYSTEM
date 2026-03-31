@@ -1,42 +1,45 @@
-import { Bus, Map, LayoutGrid, BarChart3, FileText, User, LogOut, Menu, X, Ticket, Package } from 'lucide-react';
-import { useState } from 'react';
-import { useLocation } from 'react-router';
+import { BarChart3, Bus, FileText, Map, Menu, Package, Ticket, User, X } from 'lucide-react'
+import { useState } from 'react'
+import { useLocation } from 'react-router'
 
 interface NavbarProps {
-  onNavigate: (page: any) => void;
-  userRole: 'admin' | 'conductor' | 'passenger';
+  onNavigate: (page: any) => void
+  userRole: 'admin' | 'conductor' | 'passenger'
 }
 
-export function Navbar({ onNavigate, userRole}: NavbarProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation();
+export function Navbar({ onNavigate, userRole }: NavbarProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const location = useLocation()
 
   // Determine active page from current route
   const getCurrentPage = () => {
-    const path = location.pathname;
-    if (path.includes('fleet')) return 'fleet';
-    if (path.includes('analytics')) return 'analytics';
-    if (path.includes('reports')) return 'reports';
-    if (path.includes('lostandfound')) return 'lostandfound';
-    // if (path.includes('conductor')) return 'conductor';
-    // if (path.includes('passenger')) return 'passenger';
-    return 'tracking';
-  };
+    const path = location.pathname
+    if (path.includes('fleet')) return 'fleet'
+    if (path.includes('analytics')) return 'analytics'
+    if (path.includes('reports')) return 'reports'
+    if (path.includes('lostandfound')) return 'lostandfound'
+    if (path.includes('conductor')) return 'conductor'
+    if (path.includes('passenger')) return 'passenger'
+    return 'tracking'
+  }
 
-  const activePage = getCurrentPage();
+  const activePage = getCurrentPage()
 
-  const navItems = userRole === 'admin' ? [
-    { id: 'tracking', label: 'Live Tracking', icon: Map },
-    { id: 'fleet', label: 'Fleet Management', icon: Bus },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'reports', label: 'Reports', icon: FileText },
-    { id: 'lostandfound', label: 'Lost & Found', icon: Package },
-  ] : userRole === 'conductor' ? [
-    { id: 'conductor', label: 'My Dashboard', icon: Ticket },
-  ] : [
-    { id: 'passenger', label: 'Track Buses', icon: Map },
-    { id: 'lostandfound', label: 'Lost & Found', icon: Package },
-  ];
+  const navItems =
+    userRole === 'admin'
+      ? [
+          { id: 'tracking', label: 'Live Tracking', icon: Map },
+          { id: 'fleet', label: 'Fleet Management', icon: Bus },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'reports', label: 'Reports', icon: FileText },
+          { id: 'lostandfound', label: 'Lost & Found', icon: Package },
+        ]
+      : userRole === 'conductor'
+        ? [{ id: 'conductor', label: 'My Dashboard', icon: Ticket }]
+        : [
+            { id: 'passenger', label: 'Track Buses', icon: Map },
+            { id: 'lostandfound', label: 'Lost & Found', icon: Package },
+          ]
 
   return (
     <>
@@ -56,22 +59,22 @@ export function Navbar({ onNavigate, userRole}: NavbarProps) {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-2">
-              {navItems.map(item => {
-                const Icon = item.icon;
+              {navItems.map((item) => {
+                const Icon = item.icon
                 return (
                   <button
                     key={item.id}
                     onClick={() => onNavigate(item.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                    className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                       activePage === item.id
                         ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-200'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        : 'text-gray-600 hover:bg-gray-100 '
                     }`}
                   >
                     <Icon className="w-4 h-4" />
                     <span className="text-sm">{item.label}</span>
                   </button>
-                );
+                )
               })}
             </div>
 
@@ -86,7 +89,7 @@ export function Navbar({ onNavigate, userRole}: NavbarProps) {
                   <p className="text-gray-500 text-xs">Dasmariñas-Alabang Route</p>
                 </div>
               </div>
-              
+
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -102,14 +105,14 @@ export function Navbar({ onNavigate, userRole}: NavbarProps) {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white">
             <div className="px-4 py-3 space-y-1">
-              {navItems.map(item => {
-                const Icon = item.icon;
+              {navItems.map((item) => {
+                const Icon = item.icon
                 return (
                   <button
                     key={item.id}
                     onClick={() => {
-                      onNavigate(item.id);
-                      setMobileMenuOpen(false);
+                      onNavigate(item.id)
+                      setMobileMenuOpen(false)
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                       activePage === item.id
@@ -120,12 +123,12 @@ export function Navbar({ onNavigate, userRole}: NavbarProps) {
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </button>
-                );
+                )
               })}
             </div>
           </div>
         )}
       </nav>
     </>
-  );
+  )
 }

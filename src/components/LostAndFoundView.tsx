@@ -1,61 +1,62 @@
-import { useState, useEffect } from 'react';
-import { Package, Search, Calendar, MapPin, User, Phone, Filter } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { LostAndFoundItem } from '../types';
-import { lostItemAPI } from '../utils/api';
-import { toast } from 'sonner';
+import { Calendar, MapPin, Package, Phone, Search, User } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { LostAndFoundItem } from '../types'
+import { lostItemAPI } from '../utils/api'
 
 export function LostAndFoundView() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState<'all' | LostAndFoundItem['category']>('all');
-  const [selectedItem, setSelectedItem] = useState<LostAndFoundItem | null>(null);
-  const [items, setItems] = useState<LostAndFoundItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterCategory, setFilterCategory] = useState<'all' | LostAndFoundItem['category']>('all')
+  const [selectedItem, setSelectedItem] = useState<LostAndFoundItem | null>(null)
+  const [items, setItems] = useState<LostAndFoundItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    loadItems();
-    
+    loadItems()
+
     // Refresh every 30 seconds
     const interval = setInterval(() => {
-      loadItems();
-    }, 30000);
+      loadItems()
+    }, 30000)
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(interval)
+  }, [])
 
   const loadItems = async () => {
     try {
-      const response = await lostItemAPI.getAll();
-      const itemsData = response.data || [];
-      
+      const response = await lostItemAPI.getAll()
+      const itemsData = response.data || []
+
       // Convert date strings to Date objects
       const formattedItems = itemsData.map((item: any) => ({
         ...item,
         dateFound: new Date(item.dateFound),
-        claimedDate: item.claimedDate ? new Date(item.claimedDate) : undefined
-      }));
-      
-      setItems(formattedItems);
-      setIsLoading(false);
+        claimedDate: item.claimedDate ? new Date(item.claimedDate) : undefined,
+      }))
+
+      setItems(formattedItems)
+      setIsLoading(false)
     } catch (error) {
-      console.error('Error loading lost items:', error);
+      console.error('Error loading lost items:', error)
       // Don't show error on initial load
       if (items.length > 0) {
-        toast.error('Failed to refresh lost items');
+        toast.error('Failed to refresh lost items')
       }
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // Only show unclaimed items to passengers
-  const unclaimedItems = items.filter(item => item.status === 'unclaimed');
+  const unclaimedItems = items.filter((item) => item.status === 'unclaimed')
 
-  const filteredItems = unclaimedItems.filter(item => {
-    const matchesSearch = item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredItems = unclaimedItems.filter((item) => {
+    const matchesSearch =
+      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = filterCategory === 'all' || item.category === filterCategory
+    return matchesSearch && matchesCategory
+  })
 
   const getCategoryIcon = (category: LostAndFoundItem['category']) => {
     const icons = {
@@ -64,27 +65,23 @@ export function LostAndFoundView() {
       clothing: '👕',
       documents: '📄',
       accessories: '👜',
-      other: '📦'
-    };
-    return icons[category];
-  };
+      other: '📦',
+    }
+    return icons[category]
+  }
 
   const getDaysAgo = (date: Date) => {
-    const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    return `${days} days ago`;
-  };
+    const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
+    if (days === 0) return 'Today'
+    if (days === 1) return 'Yesterday'
+    return `${days} days ago`
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
               <Package className="w-6 h-6 text-white" />
@@ -98,8 +95,8 @@ export function LostAndFoundView() {
           {/* Info Banner */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <p className="text-blue-800 text-sm">
-              <strong>Lost something?</strong> Browse through the items found by our drivers and conductors. 
-              If you find your item, contact the terminal office or the listed contact person to claim it.
+              <strong>Lost something?</strong> Browse through the items found by our drivers and conductors. If you find
+              your item, contact the terminal office or the listed contact person to claim it.
             </p>
           </div>
         </motion.div>
@@ -161,10 +158,14 @@ export function LostAndFoundView() {
             {filteredItems.map((item, index) => (
               <motion.div
                 key={item.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 1, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: index * 0.05 }}
+                exit={{ opacity: 1, y: 16, scale: 0.96 }}
+                transition={{
+                  delay: index * 0.001,
+                  duration: 0.1,
+                  ease: [0.1, 0.8, 0.25, 1], // smoother cubic-bezier
+                }}
                 className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all overflow-hidden cursor-pointer"
                 onClick={() => setSelectedItem(item)}
               >
@@ -186,9 +187,7 @@ export function LostAndFoundView() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600">
-                        {item.dateFound.toLocaleDateString()}
-                      </span>
+                      <span className="text-gray-600">{item.dateFound.toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <MapPin className="w-4 h-4 text-gray-400" />
@@ -197,7 +196,7 @@ export function LostAndFoundView() {
                   </div>
 
                   {/* View Details Button */}
-                  <button className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">
+                  <button className="cursor-pointer w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">
                     View Details
                   </button>
                 </div>
@@ -207,16 +206,12 @@ export function LostAndFoundView() {
         </div>
 
         {filteredItems.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-lg mb-2">No items found</p>
             <p className="text-gray-400 text-sm">
-              {searchTerm || filterCategory !== 'all' 
-                ? 'Try adjusting your search or filters' 
+              {searchTerm || filterCategory !== 'all'
+                ? 'Try adjusting your search or filters'
                 : 'No lost items have been reported yet'}
             </p>
           </motion.div>
@@ -261,7 +256,9 @@ export function LostAndFoundView() {
                       <Calendar className="w-5 h-5 text-blue-500" />
                       <div>
                         <p className="text-gray-500 text-xs">Date Found</p>
-                        <p className="text-gray-900">{selectedItem.dateFound.toLocaleDateString()} ({getDaysAgo(selectedItem.dateFound)})</p>
+                        <p className="text-gray-900">
+                          {selectedItem.dateFound.toLocaleDateString()} ({getDaysAgo(selectedItem.dateFound)})
+                        </p>
                       </div>
                     </div>
 
@@ -317,7 +314,7 @@ export function LostAndFoundView() {
                   {/* Close Button */}
                   <button
                     onClick={() => setSelectedItem(null)}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all"
+                    className="cursor-pointer w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all"
                   >
                     Close
                   </button>
@@ -328,5 +325,5 @@ export function LostAndFoundView() {
         </AnimatePresence>
       </div>
     </div>
-  );
+  )
 }

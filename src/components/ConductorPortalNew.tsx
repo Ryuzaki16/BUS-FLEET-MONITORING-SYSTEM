@@ -1,56 +1,73 @@
-import { useState, useEffect } from 'react';
-import { Bus, Users, Ticket, CheckCircle, Clock, MapPin, Minus, Plus, Package, X, Camera, AlertTriangle, AlertOctagon, Info, Search, LogOut, Navigation } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { tripAPI, passengerAPI, busAPI, lostItemAPI } from '../utils/api';
-import { toast } from 'sonner';
+import {
+  AlertOctagon,
+  AlertTriangle,
+  Bus,
+  CheckCircle,
+  Clock,
+  Info,
+  Loader2,
+  LogOut,
+  MapPin,
+  Navigation,
+  Package,
+  Plus,
+  Search,
+  Ticket,
+  Users,
+  X,
+} from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { busAPI, lostItemAPI, passengerAPI, tripAPI } from '../utils/api'
 
 interface Passenger {
-  id: string;
-  ticketNumber: string;
-  boardingPoint: string;
-  destination: string;
-  fare: number;
-  timestamp: Date | string;
-  paymentMethod: string;
+  id: string
+  ticketNumber: string
+  boardingPoint: string
+  destination: string
+  fare: number
+  timestamp: Date | string
+  paymentMethod: string
 }
 
 interface BusInfo {
-  id: string;
-  plateNumber: string;
-  route: string;
-  driver: string;
-  capacity: number;
+  id: string
+  plateNumber: string
+  route: string
+  driver: string
+  capacity: number
 }
 
 export function ConductorPortalNew() {
-  const [busSelected, setBusSelected] = useState(false);
-  const [busInfo, setBusInfo] = useState<BusInfo | null>(null);
-  const [busNumberInput, setBusNumberInput] = useState('');
-  const [isValidating, setIsValidating] = useState(false);
-  
+  const [busSelected, setBusSelected] = useState(false)
+  const [busInfo, setBusInfo] = useState<BusInfo | null>(null)
+  const [busNumberInput, setBusNumberInput] = useState('')
+  const [isValidating, setIsValidating] = useState(false)
+
   // GPS State
-  const [gpsPermissionGranted, setGpsPermissionGranted] = useState(false);
-  const [showGpsModal, setShowGpsModal] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [gpsWatchId, setGpsWatchId] = useState<number | null>(null);
-  const [isRequestingGps, setIsRequestingGps] = useState(false);
-  
-  const [tripActive, setTripActive] = useState(false);
-  const [currentTripId, setCurrentTripId] = useState<string | null>(null);
-  const [passengers, setPassengers] = useState<Passenger[]>([]);
-  const [showTicketForm, setShowTicketForm] = useState(false);
-  const [showLostItemForm, setShowLostItemForm] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<'on-time' | 'delayed' | 'emergency' | 'stopped'>('on-time');
-  const [statusMessage, setStatusMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [gpsPermissionGranted, setGpsPermissionGranted] = useState(false)
+  const [showGpsModal, setShowGpsModal] = useState(false)
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [gpsWatchId, setGpsWatchId] = useState<number | null>(null)
+  const [isRequestingGps, setIsRequestingGps] = useState(false)
+
+  const [tripActive, setTripActive] = useState(false)
+  const [currentTripId, setCurrentTripId] = useState<string | null>(null)
+  const [passengers, setPassengers] = useState<Passenger[]>([])
+  const [showTicketForm, setShowTicketForm] = useState(false)
+  const [showLostItemForm, setShowLostItemForm] = useState(false)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
+  const [showStatusModal, setShowStatusModal] = useState(false)
+  const [currentStatus, setCurrentStatus] = useState<'on-time' | 'delayed' | 'emergency' | 'stopped'>('on-time')
+  const [statusMessage, setStatusMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   // Ticket form state
-  const [boardingPoint, setBoardingPoint] = useState('Dasmariñas');
-  const [destination, setDestination] = useState('Alabang');
-  const [fare, setFare] = useState(45);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'digital'>('cash');
+  const [boardingPoint, setBoardingPoint] = useState('Dasmariñas')
+  const [destination, setDestination] = useState('Alabang')
+  const [fare, setFare] = useState(45)
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'digital'>('cash')
 
   // Lost item form state
   const [lostItem, setLostItem] = useState({
@@ -58,109 +75,109 @@ export function ConductorPortalNew() {
     description: '',
     category: 'other',
     location: '',
-  });
+  })
 
   useEffect(() => {
     // Check if there's a saved bus session
-    const savedBus = localStorage.getItem('conductor_bus');
+    const savedBus = localStorage.getItem('conductor_bus')
     if (savedBus) {
-      const bus = JSON.parse(savedBus);
-      setBusInfo(bus);
-      setBusSelected(true);
-      
+      const bus = JSON.parse(savedBus)
+      setBusInfo(bus)
+      setBusSelected(true)
+
       // Check GPS permission status
-      const gpsGranted = localStorage.getItem('conductor_gps_granted') === 'true';
-      setGpsPermissionGranted(gpsGranted);
-      
+      const gpsGranted = localStorage.getItem('conductor_gps_granted') === 'true'
+      setGpsPermissionGranted(gpsGranted)
+
       if (gpsGranted) {
-        startGpsTracking();
+        startGpsTracking()
       } else {
-        setShowGpsModal(true);
+        setShowGpsModal(true)
       }
-      
-      loadActiveTrip(bus.id);
+
+      loadActiveTrip(bus.id)
     }
-  }, []);
+  }, [])
 
   // Cleanup GPS tracking on unmount
   useEffect(() => {
     return () => {
       if (gpsWatchId !== null) {
-        navigator.geolocation.clearWatch(gpsWatchId);
+        navigator.geolocation.clearWatch(gpsWatchId)
       }
-    };
-  }, [gpsWatchId]);
+    }
+  }, [gpsWatchId])
 
   const startGpsTracking = () => {
     if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser');
-      return;
+      toast.error('Geolocation is not supported by your browser')
+      return
     }
 
     const options = {
       enableHighAccuracy: true,
       timeout: 10000,
-      maximumAge: 0
-    };
+      maximumAge: 0,
+    }
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const location = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-        
-        setCurrentLocation(location);
-        
+          lng: position.coords.longitude,
+        }
+
+        setCurrentLocation(location)
+
         // Update backend with current location
         if (busInfo) {
-          updateBusLocation(location);
+          updateBusLocation(location)
         }
       },
       (error) => {
-        console.error('GPS Error:', error);
-        
+        console.error('GPS Error:', error)
+
         // GeolocationPositionError codes: PERMISSION_DENIED = 1, POSITION_UNAVAILABLE = 2, TIMEOUT = 3
         switch (error.code) {
           case 1: // PERMISSION_DENIED
-            toast.error('GPS permission denied. Please enable location services.');
-            setGpsPermissionGranted(false);
-            localStorage.setItem('conductor_gps_granted', 'false');
-            break;
+            toast.error('GPS permission denied. Please enable location services.')
+            setGpsPermissionGranted(false)
+            localStorage.setItem('conductor_gps_granted', 'false')
+            break
           case 2: // POSITION_UNAVAILABLE
-            toast.error('Location information unavailable.');
-            break;
+            toast.error('Location information unavailable.')
+            break
           case 3: // TIMEOUT
-            toast.error('GPS request timed out.');
-            break;
+            toast.error('GPS request timed out.')
+            break
           default:
-            toast.error(`GPS error: ${error.message || 'Unknown error'}`);
+            toast.error(`GPS error: ${error.message || 'Unknown error'}`)
         }
       },
-      options
-    );
+      options,
+    )
 
-    setGpsWatchId(watchId);
-    console.log('GPS tracking started with watch ID:', watchId);
-  };
+    setGpsWatchId(watchId)
+    console.log('GPS tracking started with watch ID:', watchId)
+  }
 
   const updateBusLocation = async (location: { lat: number; lng: number }) => {
-    if (!busInfo) return;
-    
+    if (!busInfo) return
+
     try {
-      await busAPI.updateLocation(busInfo.id, location);
+      await busAPI.updateLocation(busInfo.id, location)
     } catch (error) {
-      console.error('Error updating bus location:', error);
+      console.error('Error updating bus location:', error)
     }
-  };
+  }
 
   const handleRequestGpsPermission = async () => {
-    setIsRequestingGps(true);
-    
+    setIsRequestingGps(true)
+
     if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser');
-      setIsRequestingGps(false);
-      return;
+      toast.error('Geolocation is not supported by your browser')
+      setIsRequestingGps(false)
+      return
     }
 
     try {
@@ -169,74 +186,75 @@ export function ConductorPortalNew() {
         (position) => {
           const location = {
             lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          
-          setCurrentLocation(location);
-          setGpsPermissionGranted(true);
-          setShowGpsModal(false);
-          localStorage.setItem('conductor_gps_granted', 'true');
-          
-          toast.success('GPS enabled successfully!');
-          
+            lng: position.coords.longitude,
+          }
+
+          setCurrentLocation(location)
+          setGpsPermissionGranted(true)
+          setShowGpsModal(false)
+          localStorage.setItem('conductor_gps_granted', 'true')
+
+          toast.success('GPS enabled successfully!')
+
           // Start continuous tracking
-          startGpsTracking();
-          setIsRequestingGps(false);
+          startGpsTracking()
+          setIsRequestingGps(false)
         },
         (error) => {
-          console.error('GPS Error:', error);
-          
+          console.error('GPS Error:', error)
+
           // GeolocationPositionError codes: PERMISSION_DENIED = 1, POSITION_UNAVAILABLE = 2, TIMEOUT = 3
           if (error.code === 1) {
-            toast.error('GPS permission denied. Please enable location in your browser settings.');
+            toast.error('GPS permission denied. Please enable location in your browser settings.')
           } else if (error.code === 2) {
-            toast.error('Location information is unavailable.');
+            toast.error('Location information is unavailable.')
           } else if (error.code === 3) {
-            toast.error('GPS request timed out. Please try again.');
+            toast.error('GPS request timed out. Please try again.')
           } else {
-            toast.error(`GPS error: ${error.message || 'Failed to get your location'}`);
+            toast.error(`GPS error: ${error.message || 'Failed to get your location'}`)
           }
-          
-          setIsRequestingGps(false);
+
+          setIsRequestingGps(false)
         },
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 0
-        }
-      );
+          maximumAge: 0,
+        },
+      )
     } catch (error) {
-      console.error('Error requesting GPS permission:', error);
-      toast.error('Failed to request GPS permission');
-      setIsRequestingGps(false);
+      console.error('Error requesting GPS permission:', error)
+      toast.error('Failed to request GPS permission')
+      setIsRequestingGps(false)
     }
-  };
+  }
 
   const handleSkipGps = () => {
-    setShowGpsModal(false);
-    toast.info('You can enable GPS tracking later from settings');
-  };
+    setShowGpsModal(false)
+    toast.info('You can enable GPS tracking later from settings')
+  }
 
   const handleValidateBus = async () => {
     if (!busNumberInput.trim()) {
-      toast.error('Please enter a bus number');
-      return;
+      toast.error('Please enter a bus number')
+      return
     }
 
-    setIsValidating(true);
+    setIsValidating(true)
     try {
-      const response = await busAPI.getAll();
-      const buses = response.data || [];
-      
+      const response = await busAPI.getAll()
+      const buses = response.data || []
+
       // Find bus by plate number (case-insensitive)
-      const foundBus = buses.find((bus: any) => 
-        bus.plateNumber.toLowerCase().replace(/\s+/g, '') === busNumberInput.toLowerCase().replace(/\s+/g, '')
-      );
+      const foundBus = buses.find(
+        (bus: any) =>
+          bus.plateNumber.toLowerCase().replace(/\s+/g, '') === busNumberInput.toLowerCase().replace(/\s+/g, ''),
+      )
 
       if (!foundBus) {
-        toast.error('Bus not found! Please check the bus number or add it in Fleet Management first.');
-        setIsValidating(false);
-        return;
+        toast.error('Bus not found! Please check the bus number or add it in Fleet Management first.')
+        setIsValidating(false)
+        return
       }
 
       // Set bus info
@@ -245,248 +263,245 @@ export function ConductorPortalNew() {
         plateNumber: foundBus.plateNumber,
         route: foundBus.route,
         driver: foundBus.driver,
-        capacity: foundBus.maxCapacity
-      };
+        capacity: foundBus.maxCapacity,
+      }
 
-      setBusInfo(busData);
-      setBusSelected(true);
-      
+      setBusInfo(busData)
+      setBusSelected(true)
+
       // Save to localStorage
-      localStorage.setItem('conductor_bus', JSON.stringify(busData));
-      
-      toast.success(`Bus ${foundBus.plateNumber} selected!`);
-      
+      localStorage.setItem('conductor_bus', JSON.stringify(busData))
+
+      toast.success(`Bus ${foundBus.plateNumber} selected!`)
+
       // Show GPS permission modal
-      setShowGpsModal(true);
-      
+      setShowGpsModal(true)
+
       // Check if there's an active trip for this bus
-      await loadActiveTrip(foundBus.id);
-      
+      await loadActiveTrip(foundBus.id)
     } catch (error) {
-      console.error('Error validating bus:', error);
-      toast.error('Failed to validate bus. Please try again.');
+      console.error('Error validating bus:', error)
+      toast.error('Failed to validate bus. Please try again.')
     } finally {
-      setIsValidating(false);
+      setIsValidating(false)
     }
-  };
+  }
 
   const handleChangeBus = () => {
     if (tripActive) {
-      toast.error('Please end the current trip before changing bus.');
-      return;
+      toast.error('Please end the current trip before changing bus.')
+      return
     }
-    
+
     // Stop GPS tracking
     if (gpsWatchId !== null) {
-      navigator.geolocation.clearWatch(gpsWatchId);
-      setGpsWatchId(null);
+      navigator.geolocation.clearWatch(gpsWatchId)
+      setGpsWatchId(null)
     }
-    
-    setBusSelected(false);
-    setBusInfo(null);
-    setBusNumberInput('');
-    setGpsPermissionGranted(false);
-    setCurrentLocation(null);
-    localStorage.removeItem('conductor_bus');
-    localStorage.removeItem('conductor_gps_granted');
-  };
+
+    setBusSelected(false)
+    setBusInfo(null)
+    setBusNumberInput('')
+    setGpsPermissionGranted(false)
+    setCurrentLocation(null)
+    localStorage.removeItem('conductor_bus')
+    localStorage.removeItem('conductor_gps_granted')
+  }
 
   const loadActiveTrip = async (busId: string) => {
     try {
-      const response = await tripAPI.getOngoing();
-      const activeTrip = response.data.find((trip: any) => trip.busId === busId);
-      
+      const response = await tripAPI.getOngoing()
+      const activeTrip = response.data.find((trip: any) => trip.busId === busId)
+
       if (activeTrip) {
-        setTripActive(true);
-        setCurrentTripId(activeTrip.id);
-        
+        setTripActive(true)
+        setCurrentTripId(activeTrip.id)
+
         // Load passengers for this trip
-        const passengersResponse = await passengerAPI.getByTrip(activeTrip.id);
-        setPassengers(passengersResponse.data.map((p: any) => ({
-          ...p,
-          timestamp: new Date(p.timestamp)
-        })));
-        
-        toast.info('Active trip detected and loaded!');
+        const passengersResponse = await passengerAPI.getByTrip(activeTrip.id)
+        setPassengers(
+          passengersResponse.data.map((p: any) => ({
+            ...p,
+            timestamp: new Date(p.timestamp),
+          })),
+        )
+
+        toast.info('Active trip detected and loaded!')
       }
     } catch (error) {
-      console.error('Error loading active trip:', error);
+      console.error('Error loading active trip:', error)
     }
-  };
+  }
 
   const handleStartTrip = async () => {
     if (!busInfo) {
-      toast.error('No bus selected');
-      return;
+      toast.error('No bus selected')
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const tripId = `trip_${Date.now()}`;
+      const tripId = `trip_${Date.now()}`
       await tripAPI.create({
         id: tripId,
         busId: busInfo.id,
         busPlateNumber: busInfo.plateNumber,
         driver: busInfo.driver,
         route: busInfo.route,
-      });
+      })
 
-      setTripActive(true);
-      setCurrentTripId(tripId);
-      setPassengers([]);
-      toast.success('Trip started successfully!');
+      setTripActive(true)
+      setCurrentTripId(tripId)
+      setPassengers([])
+      toast.success('Trip started successfully!')
     } catch (error) {
-      console.error('Error starting trip:', error);
-      toast.error('Failed to start trip. Please try again.');
+      console.error('Error starting trip:', error)
+      toast.error('Failed to start trip. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleEndTrip = async () => {
-    if (!currentTripId) return;
-    
-    setIsLoading(true);
+    if (!currentTripId) return
+
+    setIsLoading(true)
     try {
-      await tripAPI.end(currentTripId);
-      setTripActive(false);
-      setCurrentTripId(null);
-      setPassengers([]);
-      toast.success('Trip ended successfully!');
+      await tripAPI.end(currentTripId)
+      setTripActive(false)
+      setCurrentTripId(null)
+      setPassengers([])
+      toast.success('Trip ended successfully!')
     } catch (error) {
-      console.error('Error ending trip:', error);
-      toast.error('Failed to end trip. Please try again.');
+      console.error('Error ending trip:', error)
+      toast.error('Failed to end trip. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleUpdateStatus = async (status: 'on-time' | 'delayed' | 'emergency' | 'stopped', message: string = '') => {
-    if (!busInfo) return;
-    
-    setCurrentStatus(status);
-    setStatusMessage(message);
-    setShowStatusModal(false);
-    
+    if (!busInfo) return
+
+    setCurrentStatus(status)
+    setStatusMessage(message)
+    setShowStatusModal(false)
+
     try {
       await busAPI.setAlert(busInfo.id, {
         status,
         message,
         plateNumber: busInfo.plateNumber,
-        route: busInfo.route
-      });
-      
-      setShowSuccessToast(true);
-      setTimeout(() => setShowSuccessToast(false), 3000);
-      toast.success('Status updated successfully!');
+        route: busInfo.route,
+      })
+
+      setShowSuccessToast(true)
+      setTimeout(() => setShowSuccessToast(false), 3000)
+      toast.success('Status updated successfully!')
     } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error('Failed to update status.');
+      console.error('Error updating status:', error)
+      toast.error('Failed to update status.')
     }
-  };
+  }
 
   const commonRoutes = [
     { from: 'Dasmariñas', to: 'Alabang', fare: 45 },
     { from: 'Dasmariñas', to: 'Zapote', fare: 35 },
     { from: 'Dasmariñas', to: 'Sucat', fare: 40 },
     { from: 'Zapote', to: 'Alabang', fare: 25 },
-    { from: 'Sucat', to: 'Alabang', fare: 15 }
-  ];
+    { from: 'Sucat', to: 'Alabang', fare: 15 },
+  ]
 
   const issueTicket = async () => {
     if (!currentTripId) {
-      toast.error('No active trip. Please start a trip first.');
-      return;
+      toast.error('No active trip. Please start a trip first.')
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const passengerId = `TKT-${Date.now()}`;
+      const passengerId = `TKT-${Date.now()}`
       const newPassenger = {
         id: passengerId,
         ticketNumber: `${Math.floor(100000 + Math.random() * 900000)}`,
         boardingPoint,
         destination,
         fare,
-        paymentMethod: 'cash'
-      };
+        paymentMethod: 'cash',
+      }
 
-      await passengerAPI.add(currentTripId, newPassenger);
-      
-      setPassengers([...passengers, { ...newPassenger, timestamp: new Date() }]);
-      setShowTicketForm(false);
-      
+      await passengerAPI.add(currentTripId, newPassenger)
+
+      setPassengers([...passengers, { ...newPassenger, timestamp: new Date() }])
+      setShowTicketForm(false)
+
       // Reset form
-      setBoardingPoint('Dasmariñas');
-      setDestination('Alabang');
-      setFare(45);
-      
-      toast.success('Ticket issued successfully!');
+      setBoardingPoint('Dasmariñas')
+      setDestination('Alabang')
+      setFare(45)
+
+      toast.success('Ticket issued successfully!')
     } catch (error) {
-      console.error('Error issuing ticket:', error);
-      toast.error('Failed to issue ticket. Please try again.');
+      console.error('Error issuing ticket:', error)
+      toast.error('Failed to issue ticket. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const removePassenger = async (id: string) => {
-    if (!currentTripId) return;
-    
-    setIsLoading(true);
+    if (!currentTripId) return
+
+    setIsLoading(true)
     try {
-      await passengerAPI.remove(currentTripId, id);
-      setPassengers(passengers.filter(p => p.id !== id));
-      toast.success('Passenger removed successfully!');
+      await passengerAPI.remove(currentTripId, id)
+      setPassengers(passengers.filter((p) => p.id !== id))
+      toast.success('Passenger removed successfully!')
     } catch (error) {
-      console.error('Error removing passenger:', error);
-      toast.error('Failed to remove passenger.');
+      console.error('Error removing passenger:', error)
+      toast.error('Failed to remove passenger.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleReportItem = async () => {
-    if (!busInfo) return;
-    
-    setIsLoading(true);
+    if (!busInfo) return
+
+    setIsLoading(true)
     try {
-      const itemId = `lf_${Date.now()}`;
+      const itemId = `lf_${Date.now()}`
       await lostItemAPI.create({
         id: itemId,
         ...lostItem,
         busPlateNumber: busInfo.plateNumber,
         route: busInfo.route,
         foundBy: busInfo.driver,
-      });
+      })
 
-      setShowLostItemForm(false);
-      setShowSuccessToast(true);
+      setShowLostItemForm(false)
+      setShowSuccessToast(true)
       setLostItem({
         itemName: '',
         description: '',
         category: 'other',
         location: '',
-      });
-      setTimeout(() => setShowSuccessToast(false), 3000);
-      toast.success('Lost item reported successfully!');
+      })
+      setTimeout(() => setShowSuccessToast(false), 3000)
+      toast.success('Lost item reported successfully!')
     } catch (error) {
-      console.error('Error reporting lost item:', error);
-      toast.error('Failed to report lost item. Please try again.');
+      console.error('Error reporting lost item:', error)
+      toast.error('Failed to report lost item. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // If no bus is selected, show bus selection screen
   if (!busSelected || !busInfo) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-3 sm:p-4 md:p-8 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md"
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
             <div className="flex flex-col items-center mb-6">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center mb-4">
@@ -497,9 +512,7 @@ export function ConductorPortalNew() {
             </div>
 
             <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-medium mb-2">
-                Bus Plate Number
-              </label>
+              <label className="block text-gray-700 text-sm font-medium mb-2">Bus Plate Number</label>
               <div className="relative">
                 <input
                   type="text"
@@ -512,9 +525,7 @@ export function ConductorPortalNew() {
                 />
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               </div>
-              <p className="text-gray-500 text-xs mt-2">
-                Enter the bus number registered in Fleet Management
-              </p>
+              <p className="text-gray-500 text-xs mt-2">Enter the bus number registered in Fleet Management</p>
             </div>
 
             <button
@@ -537,26 +548,23 @@ export function ConductorPortalNew() {
 
             <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
               <p className="text-blue-800 text-xs sm:text-sm">
-                <strong>Note:</strong> The bus must be registered in the Fleet Management system by an administrator before you can start a trip.
+                <strong>Note:</strong> The bus must be registered in the Fleet Management system by an administrator
+                before you can start a trip.
               </p>
             </div>
           </div>
         </motion.div>
       </div>
-    );
+    )
   }
 
-  const totalRevenue = passengers.reduce((sum, p) => sum + p.fare, 0);
+  const totalRevenue = passengers.reduce((sum, p) => sum + p.fare, 0)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-3 sm:p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 md:mb-6"
-        >
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-4 md:mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-gray-900 mb-1 md:mb-2">Conductor Dashboard</h2>
@@ -589,7 +597,9 @@ export function ConductorPortalNew() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-2 md:mt-3">
                   <div className="flex items-center gap-2 text-indigo-100 text-sm sm:text-base">
                     <Users className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                    <span>{passengers.length}/{busInfo.capacity} passengers</span>
+                    <span>
+                      {passengers.length}/{busInfo.capacity} passengers
+                    </span>
                   </div>
                   {tripActive && (
                     <div className="flex items-center gap-2 px-2 sm:px-3 py-1 bg-white/20 rounded-full">
@@ -615,17 +625,21 @@ export function ConductorPortalNew() {
                 </div>
               </div>
             </div>
-            
             <button
               onClick={tripActive ? handleEndTrip : handleStartTrip}
               disabled={isLoading}
-              className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 sm:gap-3 text-base sm:text-lg w-full sm:w-auto disabled:opacity-50 ${
+              className={`cursor-pointer px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 sm:gap-3 text-base sm:text-lg w-full sm:w-auto disabled:opacity-50 ${
                 tripActive
                   ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg'
                   : 'bg-white text-indigo-600 hover:bg-indigo-50 shadow-lg'
               }`}
             >
-              {tripActive ? (
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                  <span>{tripActive ? 'Ending Trip...' : 'Starting Trip...'}</span>
+                </>
+              ) : tripActive ? (
                 <>
                   <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
                   <span>End Trip</span>
@@ -729,10 +743,15 @@ export function ConductorPortalNew() {
                 <h3 className="text-gray-900 mb-4">Current Passengers</h3>
                 <div className="space-y-3">
                   {passengers.map((passenger) => (
-                    <div key={passenger.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-xl">
+                    <div
+                      key={passenger.id}
+                      className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-xl"
+                    >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-gray-900 font-medium text-sm sm:text-base">#{passenger.ticketNumber}</span>
+                          <span className="text-gray-900 font-medium text-sm sm:text-base">
+                            #{passenger.ticketNumber}
+                          </span>
                           <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
                             {passenger.paymentMethod}
                           </span>
@@ -740,9 +759,7 @@ export function ConductorPortalNew() {
                         <div className="text-gray-600 text-xs sm:text-sm">
                           {passenger.boardingPoint} → {passenger.destination}
                         </div>
-                        <div className="text-gray-500 text-xs mt-1">
-                          ₱{passenger.fare}
-                        </div>
+                        <div className="text-gray-500 text-xs mt-1">₱{passenger.fare}</div>
                       </div>
                       <button
                         onClick={() => removePassenger(passenger.id)}
@@ -775,10 +792,7 @@ export function ConductorPortalNew() {
                   >
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-gray-900">Issue New Ticket</h3>
-                      <button
-                        onClick={() => setShowTicketForm(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
+                      <button onClick={() => setShowTicketForm(false)} className="text-gray-400 hover:text-gray-600">
                         <X className="w-6 h-6" />
                       </button>
                     </div>
@@ -802,10 +816,10 @@ export function ConductorPortalNew() {
                         <select
                           value={destination}
                           onChange={(e) => {
-                            setDestination(e.target.value);
+                            setDestination(e.target.value)
                             // Auto-set fare based on route
-                            const route = commonRoutes.find(r => r.from === boardingPoint && r.to === e.target.value);
-                            if (route) setFare(route.fare);
+                            const route = commonRoutes.find((r) => r.from === boardingPoint && r.to === e.target.value)
+                            if (route) setFare(route.fare)
                           }}
                           className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                         >
@@ -870,10 +884,7 @@ export function ConductorPortalNew() {
                   >
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-gray-900">Update Bus Status</h3>
-                      <button
-                        onClick={() => setShowStatusModal(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
+                      <button onClick={() => setShowStatusModal(false)} className="text-gray-400 hover:text-gray-600">
                         <X className="w-6 h-6" />
                       </button>
                     </div>
@@ -935,10 +946,7 @@ export function ConductorPortalNew() {
                   >
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-gray-900">Report Lost Item</h3>
-                      <button
-                        onClick={() => setShowLostItemForm(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
+                      <button onClick={() => setShowLostItemForm(false)} className="text-gray-400 hover:text-gray-600">
                         <X className="w-6 h-6" />
                       </button>
                     </div>
@@ -1072,7 +1080,8 @@ export function ConductorPortalNew() {
                   </div>
                   <h3 className="text-gray-900 mb-2 text-center">Enable GPS Tracking</h3>
                   <p className="text-gray-600 text-sm sm:text-base text-center">
-                    Allow real-time location tracking to provide accurate bus position updates to passengers and administrators.
+                    Allow real-time location tracking to provide accurate bus position updates to passengers and
+                    administrators.
                   </p>
                 </div>
 
@@ -1138,5 +1147,5 @@ export function ConductorPortalNew() {
         </AnimatePresence>
       </div>
     </div>
-  );
+  )
 }
