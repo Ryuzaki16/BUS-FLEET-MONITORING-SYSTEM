@@ -3,13 +3,11 @@ import { useState } from 'react';
 import { useLocation } from 'react-router';
 
 interface NavbarProps {
-  currentPage: string;
   onNavigate: (page: any) => void;
   userRole: 'admin' | 'conductor' | 'passenger';
-  onLogout: () => void;
 }
 
-export function Navbar({ currentPage, onNavigate, userRole, onLogout }: NavbarProps) {
+export function Navbar({ onNavigate, userRole}: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -20,8 +18,8 @@ export function Navbar({ currentPage, onNavigate, userRole, onLogout }: NavbarPr
     if (path.includes('analytics')) return 'analytics';
     if (path.includes('reports')) return 'reports';
     if (path.includes('lostandfound')) return 'lostandfound';
-    if (path.includes('conductor')) return 'conductor';
-    if (path.includes('passenger')) return 'passenger';
+    // if (path.includes('conductor')) return 'conductor';
+    // if (path.includes('passenger')) return 'passenger';
     return 'tracking';
   };
 
@@ -46,7 +44,7 @@ export function Navbar({ currentPage, onNavigate, userRole, onLogout }: NavbarPr
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('tracking')}>
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('/')}>
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Bus className="w-6 h-6 text-white" />
               </div>
@@ -89,14 +87,6 @@ export function Navbar({ currentPage, onNavigate, userRole, onLogout }: NavbarPr
                 </div>
               </div>
               
-              <button
-                onClick={onLogout}
-                className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

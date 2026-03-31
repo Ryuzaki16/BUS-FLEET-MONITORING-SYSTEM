@@ -8,6 +8,7 @@ import { FleetManagement } from "./components/FleetManagement";
 import { Analytics } from "./components/Analytics";
 import { Reports } from "./components/Reports";
 import { LostAndFound } from "./components/LostAndFound";
+import { LostAndFoundView } from "./components/LostAndFoundView";
 import { PassengerPortal } from "./components/PassengerPortal";
 import { ConductorPortal } from "./components/conductor/ConductorPortal";
 import { BusInfoPublicPage } from "./components/BusInfoPublicPage";
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
         Component: PassengerLayout,
         children: [
           { index: true, Component: PassengerPortal },
+          { path: "lostandfound", Component: LostAndFoundView },
         ],
       },
       {

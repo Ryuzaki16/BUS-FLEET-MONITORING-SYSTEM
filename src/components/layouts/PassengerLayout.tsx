@@ -10,21 +10,17 @@ export default function PassengerLayout() {
     if (page === 'passenger') {
       navigate('/passenger');
     } else {
+      console.log(`Navigating to ${page}`);
       navigate(`/passenger/${page}`);
     }
   };
 
-  const handleLogout = () => {
-    navigate('/');
-  };
 
   return (
     <>
       <Navbar 
-        currentPage="passenger" 
         onNavigate={handleNavigate}
         userRole="passenger"
-        onLogout={handleLogout}
       />
       <main className="pt-16">
         <Outlet />
