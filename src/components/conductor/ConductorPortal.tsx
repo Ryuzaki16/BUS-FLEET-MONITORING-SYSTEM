@@ -21,6 +21,7 @@ import { LostItemFormModal } from './LostItemFormModal';
 // Types
 import { BusStatus, LostItem } from '../../types/conductor';
 import { lostItemAPI } from '../../utils/api';
+import { STORAGE_KEYS } from '../../constants/conductor';
 
 export function ConductorPortal() {
   // Bus Management
@@ -71,7 +72,10 @@ export function ConductorPortal() {
     const savedBus = loadSavedBus();
     if (savedBus) {
       setBusSelected(true);
-      setShowGpsModal(!gpsGranted);
+      const alreadyHandled = ['true', 'skipped'].includes(
+        localStorage.getItem(STORAGE_KEYS.GPS_GRANTED) ?? ''
+      );
+      setShowGpsModal(!alreadyHandled);
       loadActiveTrip(savedBus.id);
     }
   }, []);
@@ -81,7 +85,7 @@ export function ConductorPortal() {
     const bus = await validateBus();
     if (bus) {
       setBusSelected(true);
-      setShowGpsModal(true);
+      setShowGpsModal(!gpsGranted);
       await loadActiveTrip(bus.id);
     }
   };

@@ -55,6 +55,7 @@ export default defineConfig({
     outDir: 'build',
   },
   server: {
+    allowedHosts: ['ariella-nonrigid-malisa.ngrok-free.dev'],
     port: 3000,
     open: true,
     host: true,

@@ -5,7 +5,10 @@ import { Location } from '../types/conductor';
 import { GPS_OPTIONS, GPS_ERROR_CODES, STORAGE_KEYS } from '../constants/conductor';
 
 export function useGPSTracking(busId: string | null) {
-  const [isGranted, setIsGranted] = useState(false);
+  const [isGranted, setIsGranted] = useState(() =>
+    localStorage.getItem(STORAGE_KEYS.GPS_GRANTED) === 'true'
+  );
+
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
   const watchIdRef = useRef<number | null>(null);
@@ -130,6 +133,7 @@ export function useGPSTracking(busId: string | null) {
   }, [startTracking, handlePositionError]);
 
   const skipPermission = useCallback(() => {
+    localStorage.setItem(STORAGE_KEYS.GPS_GRANTED, 'skipped');
     toast.info('You can enable GPS tracking later');
   }, []);
 
