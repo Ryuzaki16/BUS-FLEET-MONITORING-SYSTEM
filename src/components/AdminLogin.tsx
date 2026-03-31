@@ -129,7 +129,7 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-indigo-400 hover:text-indigo-600 transition-colors"
+                    className="cursor-pointer absolute inset-y-0 right-0 pr-4 flex items-center text-indigo-400 hover:text-indigo-600 transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -168,14 +168,14 @@ export function AdminLogin({ onLoginSuccess, onBack }: AdminLoginProps) {
                 <button
                   type="button"
                   onClick={onBack}
-                  className="flex-1 px-6 py-3 bg-white border border-indigo-200 text-slate-700 rounded-xl hover:bg-indigo-50 transition-all"
+                  className="cursor-pointer flex-1 px-6 py-3 bg-white border border-indigo-200 text-slate-700 rounded-xl hover:bg-indigo-50 transition-all"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-400 to-indigo-400 text-white rounded-xl hover:from-blue-500 hover:to-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100"
+                  className="cursor-pointer flex-1 px-6 py-3 bg-gradient-to-r from-blue-400 to-indigo-400 text-white rounded-xl hover:from-blue-500 hover:to-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100"
                 >
                   <span className="flex items-center justify-center gap-2">
                     {isLoading ? (

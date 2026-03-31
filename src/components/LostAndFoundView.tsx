@@ -100,7 +100,6 @@ export function LostAndFoundView() {
             </p>
           </div>
         </motion.div>
-
         {/* Search and Filters */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -136,7 +135,6 @@ export function LostAndFoundView() {
             </select>
           </div>
         </motion.div>
-
         {/* Stats */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -151,7 +149,6 @@ export function LostAndFoundView() {
             <Package className="w-12 h-12 text-white/30" />
           </div>
         </motion.div>
-
         {/* Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
@@ -204,8 +201,7 @@ export function LostAndFoundView() {
             ))}
           </AnimatePresence>
         </div>
-
-        {filteredItems.length === 0 && (
+        {!isLoading && filteredItems.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-lg mb-2">No items found</p>
@@ -216,7 +212,6 @@ export function LostAndFoundView() {
             </p>
           </motion.div>
         )}
-
         {/* Item Details Modal */}
         <AnimatePresence>
           {selectedItem && (
@@ -243,13 +238,11 @@ export function LostAndFoundView() {
                       <p className="text-gray-500 capitalize">{selectedItem.category}</p>
                     </div>
                   </div>
-
                   {/* Description */}
                   <div className="mb-6">
                     <h3 className="text-gray-900 mb-2">Description</h3>
                     <p className="text-gray-600">{selectedItem.description}</p>
                   </div>
-
                   {/* Details */}
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -299,7 +292,6 @@ export function LostAndFoundView() {
                       </div>
                     )}
                   </div>
-
                   {/* How to Claim */}
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-6">
                     <h3 className="text-gray-900 mb-2">How to Claim This Item</h3>
@@ -310,7 +302,6 @@ export function LostAndFoundView() {
                       <li>If contact info is provided, you may call ahead to confirm</li>
                     </ol>
                   </div>
-
                   {/* Close Button */}
                   <button
                     onClick={() => setSelectedItem(null)}

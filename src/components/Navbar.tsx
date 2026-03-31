@@ -14,12 +14,15 @@ export function Navbar({ onNavigate, userRole }: NavbarProps) {
   // Determine active page from current route
   const getCurrentPage = () => {
     const path = location.pathname
-    if (path.includes('fleet')) return 'fleet'
-    if (path.includes('analytics')) return 'analytics'
-    if (path.includes('reports')) return 'reports'
-    if (path.includes('lostandfound')) return 'lostandfound'
-    if (path.includes('conductor')) return 'conductor'
-    if (path.includes('passenger')) return 'passenger'
+
+    if (path.includes('/fleet')) return 'fleet'
+    if (path.includes('/analytics')) return 'analytics'
+    if (path.includes('/reports')) return 'reports'
+    if (path.includes('/lostandfound')) return 'lostandfound'
+    if (path.includes('/conductor')) return 'conductor'
+    if (path.includes('/passenger')) return 'passenger'
+    if (path.includes('/tracking')) return 'tracking'
+
     return 'tracking'
   }
 

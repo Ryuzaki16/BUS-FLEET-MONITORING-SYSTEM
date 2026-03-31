@@ -1,7 +1,8 @@
-import { Download, Loader2, QrCode, X } from 'lucide-react'
+import { Check, Copy, Download, Loader2, QrCode, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { toast } from 'sonner'
 
 interface BusQRCodeProps {
   busId: string
@@ -13,6 +14,9 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isQrLoading, setIsQrLoading] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [isCopying, setIsCopying] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -32,14 +36,15 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
   const qrCodeUrl = useMemo(() => {
     if (typeof window === 'undefined') return ''
 
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+    return `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(
       `${window.location.origin}/bus/track/${busId}`,
     )}`
-  }, [qrCodeId])
+  }, [busId])
 
   useEffect(() => {
     if (isOpen) {
       setIsQrLoading(true)
+      setCopied(false)
     }
   }, [isOpen, qrCodeUrl])
 
@@ -52,6 +57,9 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
   const closeModal = useCallback(() => {
     setIsOpen(false)
     setIsQrLoading(false)
+    setIsDownloading(false)
+    setIsCopying(false)
+    setCopied(false)
   }, [])
 
   const handleBackdropClick = useCallback(
@@ -73,26 +81,88 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
     [closeModal],
   )
 
-  const handleDownload = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault()
-      e.stopPropagation()
-
-      if (!qrCodeUrl || isQrLoading) return
-
-      const link = document.createElement('a')
-      link.href = qrCodeUrl
-      link.download = `bus-${plateNumber}-qr.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    },
-    [qrCodeUrl, plateNumber, isQrLoading],
-  )
-
   const handleContentClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation()
   }, [])
+
+  const getQrBlob = useCallback(async () => {
+    const response = await fetch(qrCodeUrl, { mode: 'cors' })
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch QR code image')
+    }
+
+    return await response.blob()
+  }, [qrCodeUrl])
+
+  const handleDownload = useCallback(
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      e.stopPropagation()
+
+      if (!qrCodeUrl || isQrLoading || isDownloading) return
+
+      try {
+        setIsDownloading(true)
+
+        const blob = await getQrBlob()
+        const objectUrl = URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+        link.href = objectUrl
+        link.download = `bus-${plateNumber.replace(/\s+/g, '-').toLowerCase()}-qr.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+
+        URL.revokeObjectURL(objectUrl)
+        toast.success('QR code downloaded')
+      } catch (error) {
+        console.error('Error downloading QR code:', error)
+        toast.error('Failed to download QR code')
+      } finally {
+        setIsDownloading(false)
+      }
+    },
+    [getQrBlob, isDownloading, isQrLoading, plateNumber, qrCodeUrl],
+  )
+
+  const handleCopyImage = useCallback(
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      e.stopPropagation()
+
+      if (!qrCodeUrl || isQrLoading || isCopying) return
+
+      try {
+        setIsCopying(true)
+
+        if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
+          throw new Error('Clipboard image copy is not supported in this browser')
+        }
+
+        const blob = await getQrBlob()
+        const clipboardItem = new ClipboardItem({
+          [blob.type || 'image/png']: blob,
+        })
+
+        await navigator.clipboard.write([clipboardItem])
+
+        setCopied(true)
+        toast.success('QR code copied as image')
+
+        window.setTimeout(() => {
+          setCopied(false)
+        }, 2000)
+      } catch (error) {
+        console.error('Error copying QR image:', error)
+        toast.error('Copy image is not supported on this device/browser')
+      } finally {
+        setIsCopying(false)
+      }
+    },
+    [getQrBlob, isCopying, isQrLoading, qrCodeUrl],
+  )
 
   const modal = (
     <AnimatePresence>
@@ -150,17 +220,22 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
                         }`}
                         draggable={false}
                         onLoad={() => setIsQrLoading(false)}
-                        onError={() => setIsQrLoading(false)}
+                        onError={() => {
+                          setIsQrLoading(false)
+                          toast.error('Failed to load QR code')
+                        }}
                       />
                     </div>
                   </div>
                 </div>
+
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4">
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-gray-600 text-sm">QR Code ID:</span>
                     <span className="text-gray-900 font-mono text-xs break-all text-right">{qrCodeId}</span>
                   </div>
                 </div>
+
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
                   <h4 className="text-gray-900 mb-2 flex items-center gap-2 text-sm font-medium">
                     <QrCode className="w-4 h-4 text-blue-600" />
@@ -187,24 +262,50 @@ export function BusQRCode({ busId, plateNumber, qrCodeId }: BusQRCodeProps) {
                   </ul>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  disabled={isQrLoading}
-                  className="cursor-pointer w-full px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:from-indigo-700 hover:to-blue-700 hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {isQrLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Loading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-5 h-5" />
-                      <span>Download QR Code</span>
-                    </>
-                  )}
-                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownload}
+                    disabled={isQrLoading || isDownloading || isCopying}
+                    className="cursor-pointer px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:from-indigo-700 hover:to-blue-700 hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isDownloading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-5 h-5" />
+                        <span>Download</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyImage}
+                    disabled={isQrLoading || isDownloading || isCopying}
+                    className="cursor-pointer px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isCopying ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>Copying...</span>
+                      </>
+                    ) : copied ? (
+                      <>
+                        <Check className="w-5 h-5 text-green-600" />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-5 h-5" />
+                        <span>Copy Image</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
