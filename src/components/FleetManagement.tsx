@@ -13,29 +13,29 @@ import {
   Users,
   X,
   XCircle,
-} from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
-import type { Bus as BusType } from '../types';
-import { busAPI } from '../utils/api';
-import { BusQRCode } from './BusQRCode';
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import type { Bus as BusType } from "../types";
+import { busAPI } from "../utils/api";
+import { BusQRCode } from "./BusQRCode";
 
 export function FleetManagement() {
   const [buses, setBuses] = useState<BusType[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'idle' | 'maintenance'>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "idle" | "maintenance">("all");
   const [showAddBusModal, setShowAddBusModal] = useState(false);
   const [selectedBusDetails, setSelectedBusDetails] = useState<BusType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   const [newBus, setNewBus] = useState({
-    plateNumber: '',
-    driver: '',
-    route: '',
-    status: 'idle' as 'active' | 'idle' | 'maintenance',
+    plateNumber: "",
+    driver: "",
+    route: "",
+    status: "idle" as "active" | "idle" | "maintenance",
     maxCapacity: 18,
     lat: 14.5995,
     lng: 120.9842,
@@ -43,19 +43,23 @@ export function FleetManagement() {
 
   useEffect(() => {
     loadBuses();
+
+    const interval = setInterval(() => {
+      loadBuses();
+    }, 5000);
   }, []);
 
   useEffect(() => {
     if (!selectedBusDetails) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setSelectedBusDetails(null);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedBusDetails]);
 
   const loadBuses = async () => {
@@ -74,9 +78,9 @@ export function FleetManagement() {
       setBuses(formattedBuses);
       setIsLoading(false);
     } catch (error) {
-      console.error('Error loading buses:', error);
+      console.error("Error loading buses:", error);
       if (buses.length > 0) {
-        toast.error('Failed to refresh fleet data');
+        toast.error("Failed to refresh fleet data");
       }
       setIsLoading(false);
     }
@@ -86,34 +90,34 @@ export function FleetManagement() {
     const matchesSearch =
       bus.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bus.driver.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || bus.status === filterStatus;
+    const matchesFilter = filterStatus === "all" || bus.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
   const stats = {
     total: buses.length,
-    active: buses.filter((b) => b.status === 'active').length,
-    idle: buses.filter((b) => b.status === 'idle').length,
-    maintenance: buses.filter((b) => b.status === 'maintenance').length,
+    active: buses.filter((b) => b.status === "active").length,
+    idle: buses.filter((b) => b.status === "idle").length,
+    maintenance: buses.filter((b) => b.status === "maintenance").length,
     totalPassengers: buses.reduce((sum, bus) => sum + bus.currentPassengers, 0),
     avgOccupancy:
       buses.length > 0
         ? ((buses.reduce((sum, bus) => sum + bus.currentPassengers / bus.maxCapacity, 0) / buses.length) * 100).toFixed(
             0,
           )
-        : '0',
+        : "0",
   };
 
   const handleAddBus = async () => {
     if (!newBus.plateNumber || !newBus.driver || !newBus.route) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
     setIsLoading(true);
     try {
       const generateQRCodeId = () => {
-        const cleanPlateNumber = newBus.plateNumber.replace(/\s+/g, '').toUpperCase();
+        const cleanPlateNumber = newBus.plateNumber.replace(/\s+/g, "").toUpperCase();
         const randomHash = Math.random().toString(36).substring(2, 8).toUpperCase();
         return `QR-${cleanPlateNumber}-${randomHash}`;
       };
@@ -140,19 +144,19 @@ export function FleetManagement() {
       setShowAddBusModal(false);
 
       setNewBus({
-        plateNumber: '',
-        driver: '',
-        route: '',
-        status: 'idle',
+        plateNumber: "",
+        driver: "",
+        route: "",
+        status: "idle",
         maxCapacity: 18,
         lat: 14.5995,
         lng: 120.9842,
       });
 
-      toast.success('Bus added successfully!');
+      toast.success("Bus added successfully!");
     } catch (error) {
-      console.error('Error adding bus:', error);
-      toast.error('Failed to add bus. Please try again.');
+      console.error("Error adding bus:", error);
+      toast.error("Failed to add bus. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -316,11 +320,11 @@ export function FleetManagement() {
                 >
                   <div
                     className={`p-4 ${
-                      bus.status === 'active'
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-600'
-                        : bus.status === 'idle'
-                          ? 'bg-gradient-to-r from-yellow-500 to-orange-600'
-                          : 'bg-gradient-to-r from-red-500 to-pink-600'
+                      bus.status === "active"
+                        ? "bg-gradient-to-r from-green-500 to-emerald-600"
+                        : bus.status === "idle"
+                          ? "bg-gradient-to-r from-yellow-500 to-orange-600"
+                          : "bg-gradient-to-r from-red-500 to-pink-600"
                     } text-white`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -363,10 +367,10 @@ export function FleetManagement() {
                         <div
                           className={`h-3 rounded-full transition-all ${
                             bus.currentPassengers / bus.maxCapacity < 0.5
-                              ? 'bg-green-500'
+                              ? "bg-green-500"
                               : bus.currentPassengers / bus.maxCapacity < 0.8
-                                ? 'bg-yellow-500'
-                                : 'bg-red-500'
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
                           }`}
                           style={{ width: `${(bus.currentPassengers / bus.maxCapacity) * 100}%` }}
                         />
@@ -375,9 +379,9 @@ export function FleetManagement() {
                       <div className="flex items-center justify-between mt-1 text-xs text-gray-600">
                         <span>{((bus.currentPassengers / bus.maxCapacity) * 100).toFixed(0)}% capacity</span>
 
-                        {bus.status === 'idle' ? (
+                        {bus.status === "idle" ? (
                           <span className="text-blue-600">Ready for dispatch</span>
-                        ) : bus.status === 'maintenance' ? (
+                        ) : bus.status === "maintenance" ? (
                           <span className="text-red-600">Unavailable</span>
                         ) : bus.currentPassengers / bus.maxCapacity < 0.5 ? (
                           <span className="text-green-600">Available seats</span>
@@ -393,31 +397,31 @@ export function FleetManagement() {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-600">Last Update</span>
                         <span className="text-gray-900 text-right">
-                          {bus.status === 'active'
+                          {bus.status === "active"
                             ? bus.location.lastUpdated.toLocaleTimeString()
-                            : bus.status === 'idle'
-                              ? 'Waiting for trip start'
-                              : 'Under maintenance'}
+                            : bus.status === "idle"
+                              ? "Waiting for trip start"
+                              : "Under maintenance"}
                         </span>
                       </div>
 
                       <div
                         className={`flex items-center gap-2 text-xs ${
-                          bus.status === 'active' ? 'text-green-600' : 'text-gray-500'
+                          bus.status === "active" ? "text-green-600" : "text-gray-500"
                         }`}
                       >
                         <div
                           className={`w-2 h-2 rounded-full ${
-                            bus.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                            bus.status === "active" ? "bg-green-500 animate-pulse" : "bg-gray-400"
                           }`}
                         />
-                        {bus.status === 'active' ? 'GPS Active' : 'GPS Inactive'}
+                        {bus.status === "active" ? "GPS Active" : "GPS Inactive"}
                       </div>
 
                       <div className="flex items-center gap-2 text-sm">
                         <Clock className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">Trip ID:</span>
-                        <span className="text-gray-900">{bus.currentTrip || 'No active trip'}</span>
+                        <span className="text-gray-900">{bus.currentTrip || "No active trip"}</span>
                       </div>
                     </div>
 
@@ -433,7 +437,7 @@ export function FleetManagement() {
 
                         <button
                           type="button"
-                          disabled={bus.status === 'idle'}
+                          disabled={bus.status === "idle"}
                           onClick={() => navigate(`/admin/tracking/${bus.id}`)}
                           className="cursor-pointer flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
                           bg-blue-50 text-blue-600 hover:bg-blue-100
@@ -460,8 +464,8 @@ export function FleetManagement() {
                 <button
                   type="button"
                   onClick={() => {
-                    setSearchTerm('');
-                    setFilterStatus('all');
+                    setSearchTerm("");
+                    setFilterStatus("all");
                   }}
                   className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-600 text-white text-sm hover:bg-gray-700 transition-colors"
                 >
@@ -496,11 +500,11 @@ export function FleetManagement() {
                   <div className="flex items-center gap-4">
                     <div
                       className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white ${
-                        selectedBusDetails.status === 'active'
-                          ? 'bg-gradient-to-br from-green-500 to-emerald-600'
-                          : selectedBusDetails.status === 'idle'
-                            ? 'bg-gradient-to-br from-yellow-500 to-orange-600'
-                            : 'bg-gradient-to-br from-red-500 to-pink-600'
+                        selectedBusDetails.status === "active"
+                          ? "bg-gradient-to-br from-green-500 to-emerald-600"
+                          : selectedBusDetails.status === "idle"
+                            ? "bg-gradient-to-br from-yellow-500 to-orange-600"
+                            : "bg-gradient-to-br from-red-500 to-pink-600"
                       }`}
                     >
                       <Bus className="w-7 h-7" />
@@ -515,11 +519,11 @@ export function FleetManagement() {
                   <div className="flex items-center gap-3">
                     <span
                       className={`px-4 py-2 rounded-full text-sm font-medium text-white ${
-                        selectedBusDetails.status === 'active'
-                          ? 'bg-green-500'
-                          : selectedBusDetails.status === 'idle'
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500'
+                        selectedBusDetails.status === "active"
+                          ? "bg-green-500"
+                          : selectedBusDetails.status === "idle"
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
                       }`}
                     >
                       {selectedBusDetails.status.toUpperCase()}
@@ -547,7 +551,7 @@ export function FleetManagement() {
 
                     <div>
                       <label className="text-gray-600 text-sm">Current Trip ID</label>
-                      <p className="text-gray-900">{selectedBusDetails.currentTrip || 'No active trip'}</p>
+                      <p className="text-gray-900">{selectedBusDetails.currentTrip || "No active trip"}</p>
                     </div>
 
                     <div>
@@ -573,10 +577,10 @@ export function FleetManagement() {
                         <div
                           className={`h-3 rounded-full ${
                             selectedBusDetails.currentPassengers / selectedBusDetails.maxCapacity < 0.5
-                              ? 'bg-green-500'
+                              ? "bg-green-500"
                               : selectedBusDetails.currentPassengers / selectedBusDetails.maxCapacity < 0.8
-                                ? 'bg-yellow-500'
-                                : 'bg-red-500'
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
                           }`}
                           style={{
                             width: `${Math.min(
@@ -607,26 +611,26 @@ export function FleetManagement() {
                     <div>
                       <label className="text-gray-600 text-sm">Last Update</label>
                       <p className="text-gray-900">
-                        {selectedBusDetails.status === 'active'
+                        {selectedBusDetails.status === "active"
                           ? selectedBusDetails.location.lastUpdated.toLocaleTimeString()
-                          : selectedBusDetails.status === 'idle'
-                            ? 'Waiting for trip start'
-                            : 'Under maintenance'}
+                          : selectedBusDetails.status === "idle"
+                            ? "Waiting for trip start"
+                            : "Under maintenance"}
                       </p>
                     </div>
 
                     <div
                       className={`flex items-center gap-2 ${
-                        selectedBusDetails.status === 'active' ? 'text-green-600' : 'text-gray-500'
+                        selectedBusDetails.status === "active" ? "text-green-600" : "text-gray-500"
                       }`}
                     >
                       <div
                         className={`w-2.5 h-2.5 rounded-full ${
-                          selectedBusDetails.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                          selectedBusDetails.status === "active" ? "bg-green-500 animate-pulse" : "bg-gray-400"
                         }`}
                       />
                       <span className="text-sm">
-                        {selectedBusDetails.status === 'active' ? 'GPS Signal: Active' : 'GPS Signal: Inactive'}
+                        {selectedBusDetails.status === "active" ? "GPS Signal: Active" : "GPS Signal: Inactive"}
                       </span>
                     </div>
                   </div>
@@ -644,14 +648,14 @@ export function FleetManagement() {
 
                 <button
                   type="button"
-                  disabled={selectedBusDetails.status !== 'active'}
+                  disabled={selectedBusDetails.status !== "active"}
                   onClick={() => navigate(`/admin/tracking/${selectedBusDetails.id}`)}
                   className="cursor-pointer flex-1 px-6 py-3 rounded-xl text-white transition-all
                   bg-gradient-to-r from-indigo-600 to-blue-600 hover:shadow-lg
                   disabled:bg-none disabled:bg-gray-100 disabled:text-gray-400
                   disabled:shadow-none disabled:cursor-default"
                 >
-                  {selectedBusDetails.status === 'active' ? 'Open Live Tracking' : 'Tracking Unavailable'}
+                  {selectedBusDetails.status === "active" ? "Open Live Tracking" : "Tracking Unavailable"}
                 </button>
               </div>
             </motion.div>
@@ -741,7 +745,7 @@ export function FleetManagement() {
                       <select
                         value={newBus.status}
                         onChange={(e) =>
-                          setNewBus({ ...newBus, status: e.target.value as 'active' | 'idle' | 'maintenance' })
+                          setNewBus({ ...newBus, status: e.target.value as "active" | "idle" | "maintenance" })
                         }
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                       >
