@@ -82,8 +82,10 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
                 );
               })}
             </div>
-            <Button onClick={logout} variant="outline" size="sm" className="bg-red-500 text-white">
-                    <LogOut className="w-3 h-3 mr-1" /> Logout </Button>
+            {userRole === 'admin' && (
+              <Button onClick={logout} variant="outline" size="sm" className="bg-red-500 text-white">
+                <LogOut className="w-3 h-3 mr-1" /> Logout </Button>
+            )}
 
             {/* User Menu */}
             <div className="flex items-center gap-3">
