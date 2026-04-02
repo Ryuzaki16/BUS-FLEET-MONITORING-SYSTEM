@@ -85,11 +85,9 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
 
             {/* User Menu */}
             <div className="relative flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setUserMenuOpen((prev) => !prev)}
-                className="cursor-pointer hidden sm:flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:bg-gray-100 transition-all"
-              >
+              <button type="button"
+                onClick={() => { if (userRole === "admin") { setUserMenuOpen((prev) => !prev); } }}
+                className="cursor-pointer hidden sm:flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:bg-gray-100 transition-all">
                 <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
                   <User className="w-4 h-4 text-white" />
                 </div>
@@ -98,10 +96,10 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
                   <p className="text-gray-900 text-sm capitalize">{userRole}</p>
                   <p className="text-gray-500 text-xs">Dasmariñas-Alabang Route</p>
                 </div>
-
-                <ChevronDown
-                  className={`w-4 h-4 text-gray-500 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
-                />
+                {userRole === "admin" &&(
+                  <ChevronDown
+                    className={`w-4 h-4 text-gray-500 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}/>
+                )}
               </button>
 
               {userMenuOpen && (
@@ -124,8 +122,7 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
 
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-              >
+                className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
