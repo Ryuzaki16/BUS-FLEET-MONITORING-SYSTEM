@@ -1,7 +1,7 @@
-import { useCallback, useState } from 'react';
-import { toast } from 'sonner';
-import { BusInfo, Passenger } from '../types/conductor';
-import { passengerAPI, tripAPI } from '../utils/api';
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
+import { BusInfo, Passenger } from "../types/conductor";
+import { passengerAPI, tripAPI } from "../utils/api";
 
 export function useTripManagement(busInfo: BusInfo | null) {
   const [isActive, setIsActive] = useState(false);
@@ -26,16 +26,16 @@ export function useTripManagement(busInfo: BusInfo | null) {
           })),
         );
 
-        toast.info('Active trip detected and loaded!');
+        toast.info("Active trip detected and loaded!");
       }
     } catch (error) {
-      console.error('Error loading active trip:', error);
+      console.error("Error loading active trip:", error);
     }
   }, []);
 
   const startTrip = useCallback(async () => {
     if (!busInfo) {
-      toast.error('No bus selected');
+      toast.error("No bus selected");
       return false;
     }
 
@@ -53,11 +53,11 @@ export function useTripManagement(busInfo: BusInfo | null) {
       setIsActive(true);
       setCurrentTripId(tripId);
       setPassengers([]);
-      toast.success('Trip started successfully!');
+      toast.success("Trip started successfully!");
       return true;
     } catch (error) {
-      console.error('Error starting trip:', error);
-      toast.error('Failed to start trip. Please try again.');
+      console.error("Error starting trip:", error);
+      toast.error("Failed to start trip. Please try again.");
       return false;
     } finally {
       setIsLoading(false);
@@ -73,11 +73,11 @@ export function useTripManagement(busInfo: BusInfo | null) {
       setIsActive(false);
       setCurrentTripId(null);
       setPassengers([]);
-      toast.success('Trip ended successfully!');
+      toast.success("Trip ended successfully!");
       return true;
     } catch (error) {
-      console.error('Error ending trip:', error);
-      toast.error('Failed to end trip. Please try again.');
+      console.error("Error ending trip:", error);
+      toast.error("Failed to end trip. Please try again.");
       return false;
     } finally {
       setIsLoading(false);
@@ -85,9 +85,9 @@ export function useTripManagement(busInfo: BusInfo | null) {
   }, [currentTripId]);
 
   const addPassenger = useCallback(
-    async (passenger: Omit<Passenger, 'id' | 'timestamp'>) => {
+    async (passenger: Omit<Passenger, "id" | "timestamp">) => {
       if (!currentTripId) {
-        toast.error('No active trip. Please start a trip first.');
+        toast.error("No active trip. Please start a trip first.");
         return false;
       }
 
@@ -102,11 +102,11 @@ export function useTripManagement(busInfo: BusInfo | null) {
         await passengerAPI.add(currentTripId, newPassenger);
 
         setPassengers([...passengers, { ...newPassenger, timestamp: new Date() }]);
-        toast.success('Ticket issued successfully!');
+        toast.success("Ticket issued successfully!");
         return true;
       } catch (error) {
-        console.error('Error issuing ticket:', error);
-        toast.error('Failed to issue ticket. Please try again.');
+        console.error("Error issuing ticket:", error);
+        toast.error("Failed to issue ticket. Please try again.");
         return false;
       } finally {
         setIsLoading(false);
@@ -123,11 +123,11 @@ export function useTripManagement(busInfo: BusInfo | null) {
       try {
         await passengerAPI.remove(currentTripId, passengerId);
         setPassengers(passengers.filter((p) => p.id !== passengerId));
-        toast.success('Passenger removed successfully!');
+        toast.success("Passenger removed successfully!");
         return true;
       } catch (error) {
-        console.error('Error removing passenger:', error);
-        toast.error('Failed to remove passenger.');
+        console.error("Error removing passenger:", error);
+        toast.error("Failed to remove passenger.");
         return false;
       } finally {
         setIsLoading(false);

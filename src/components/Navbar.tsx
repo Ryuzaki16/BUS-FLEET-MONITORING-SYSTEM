@@ -1,49 +1,49 @@
-import { BarChart3, Bus, FileText, Map, Menu, Package, Ticket, User, X, LogOut } from 'lucide-react';
-import { useState } from 'react';
-import { Button } from './ui/button';
-import { useLocation } from 'react-router';
+import { BarChart3, Bus, ChevronDown, FileText, LogOut, Map, Menu, Package, Ticket, User, X } from "lucide-react";
+import { useState } from "react";
+import { useLocation } from "react-router";
 
 interface NavbarProps {
   onNavigate: (page: any) => void;
-  userRole: 'admin' | 'conductor' | 'passenger';
+  userRole: "admin" | "conductor" | "passenger";
   logout?: () => void;
 }
 
 export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
 
   // Determine active page from current route
   const getCurrentPage = () => {
     const path = location.pathname;
 
-    if (path.includes('/fleet')) return 'fleet';
-    if (path.includes('/analytics')) return 'analytics';
-    if (path.includes('/reports')) return 'reports';
-    if (path.includes('/lostandfound')) return 'lostandfound';
-    if (path.includes('/conductor')) return 'conductor';
-    if (path.includes('/passenger')) return 'passenger';
-    if (path.includes('/tracking')) return 'tracking';
+    if (path.includes("/fleet")) return "fleet";
+    if (path.includes("/analytics")) return "analytics";
+    if (path.includes("/reports")) return "reports";
+    if (path.includes("/lostandfound")) return "lostandfound";
+    if (path.includes("/conductor")) return "conductor";
+    if (path.includes("/passenger")) return "passenger";
+    if (path.includes("/tracking")) return "tracking";
 
-    return 'tracking';
+    return "tracking";
   };
 
   const activePage = getCurrentPage();
 
   const navItems =
-    userRole === 'admin'
+    userRole === "admin"
       ? [
-          { id: 'tracking', label: 'Live Tracking', icon: Map },
-          { id: 'fleet', label: 'Fleet Management', icon: Bus },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-          { id: 'reports', label: 'Reports', icon: FileText },
-          { id: 'lostandfound', label: 'Lost & Found', icon: Package },
+          { id: "tracking", label: "Live Tracking", icon: Map },
+          { id: "fleet", label: "Fleet Management", icon: Bus },
+          { id: "analytics", label: "Analytics", icon: BarChart3 },
+          { id: "reports", label: "Reports", icon: FileText },
+          { id: "lostandfound", label: "Lost & Found", icon: Package },
         ]
-      : userRole === 'conductor'
-        ? [{ id: 'conductor', label: 'My Dashboard', icon: Ticket }]
+      : userRole === "conductor"
+        ? [{ id: "conductor", label: "My Dashboard", icon: Ticket }]
         : [
-            { id: 'passenger', label: 'Track Buses', icon: Map },
-            { id: 'lostandfound', label: 'Lost & Found', icon: Package },
+            { id: "passenger", label: "Track Buses", icon: Map },
+            { id: "lostandfound", label: "Lost & Found", icon: Package },
           ];
 
   return (
@@ -52,7 +52,7 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('/')}>
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate("/")}>
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Bus className="w-6 h-6 text-white" />
               </div>
@@ -72,8 +72,8 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
                     onClick={() => onNavigate(item.id)}
                     className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                       activePage === item.id
-                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-200'
-                        : 'text-gray-600 hover:bg-gray-100 '
+                        ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-200"
+                        : "text-gray-600 hover:bg-gray-100 "
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -82,24 +82,46 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
                 );
               })}
             </div>
-            {userRole === 'admin' && (
-              <Button onClick={logout} variant="outline" size="sm" className="bg-red-500 text-white">
-                <LogOut className="w-3 h-3 mr-1" /> Logout </Button>
-            )}
 
             {/* User Menu */}
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+            <div className="relative flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+                className="cursor-pointer hidden sm:flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:bg-gray-100 transition-all"
+              >
                 <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
                   <User className="w-4 h-4 text-white" />
                 </div>
-                <div className="hidden lg:block">
+
+                <div className="hidden lg:block text-left">
                   <p className="text-gray-900 text-sm capitalize">{userRole}</p>
                   <p className="text-gray-500 text-xs">Dasmariñas-Alabang Route</p>
                 </div>
-              </div>
 
-              {/* Mobile menu button */}
+                <ChevronDown
+                  className={`w-4 h-4 text-gray-500 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {userMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden z-50 hidden sm:block">
+                  <div className="p-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        logout?.();
+                      }}
+                      className="w-full cursor-pointer flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors text-sm"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -125,8 +147,8 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                       activePage === item.id
-                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white'
-                        : 'text-gray-600 hover:bg-gray-50'
+                        ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white"
+                        : "text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     <Icon className="w-5 h-5" />
