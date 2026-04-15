@@ -39,6 +39,8 @@ interface BusInfo {
   capacity: number;
 }
 
+type BusStatusType = "on-time" | "delayed" | "emergency" | "stopped";
+
 export function ConductorPortalNew() {
   const [busSelected, setBusSelected] = useState(false);
   const [busInfo, setBusInfo] = useState<BusInfo | null>(null);
@@ -58,9 +60,12 @@ export function ConductorPortalNew() {
   const [showLostItemForm, setShowLostItemForm] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<"on-time" | "delayed" | "emergency" | "stopped">("on-time");
+  const [currentStatus, setCurrentStatus] = useState<BusStatusType>("on-time");
   const [statusMessage, setStatusMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<BusStatusType | null>(null);
 
   const [boardingPoint, setBoardingPoint] = useState("Dasmariñas");
   const [destination, setDestination] = useState("Alabang");
@@ -357,12 +362,16 @@ export function ConductorPortalNew() {
     }
   };
 
-  const handleUpdateStatus = async (status: "on-time" | "delayed" | "emergency" | "stopped", message: string = "") => {
-    if (!busInfo) return;
+  const handleUpdateStatus = async (status: BusStatusType, message: string = "") => {
+    if (!busInfo || isUpdatingStatus) return;
 
-    setCurrentStatus(status);
-    setStatusMessage(message);
-    setShowStatusModal(false);
+    setIsUpdatingStatus(true);
+    setPendingStatus(status);
+
+    // Let React paint the loading state first
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+
+    const startedAt = Date.now();
 
     try {
       await busAPI.setAlert(busInfo.id, {
@@ -372,12 +381,28 @@ export function ConductorPortalNew() {
         route: busInfo.route,
       });
 
+      // Keep loader visible briefly so users can actually notice it
+      const elapsed = Date.now() - startedAt;
+      const minimumVisibleMs = 500;
+
+      if (elapsed < minimumVisibleMs) {
+        await new Promise((resolve) => setTimeout(resolve, minimumVisibleMs - elapsed));
+      }
+
+      setCurrentStatus(status);
+      setStatusMessage(message);
+
       setShowSuccessToast(true);
       setTimeout(() => setShowSuccessToast(false), 3000);
       toast.success("Status updated successfully!");
+
+      setShowStatusModal(false);
     } catch (error) {
       console.error("Error updating status:", error);
       toast.error("Failed to update status.");
+    } finally {
+      setIsUpdatingStatus(false);
+      setPendingStatus(null);
     }
   };
 
@@ -873,7 +898,7 @@ export function ConductorPortalNew() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                  onClick={() => setShowStatusModal(false)}
+                  onClick={() => !isUpdatingStatus && setShowStatusModal(false)}
                 >
                   <motion.div
                     initial={{ scale: 0.96, opacity: 0 }}
@@ -884,7 +909,11 @@ export function ConductorPortalNew() {
                   >
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-gray-900 text-lg sm:text-xl font-semibold">Update Bus Status</h3>
-                      <button onClick={() => setShowStatusModal(false)} className="text-gray-400 hover:text-gray-600">
+                      <button
+                        onClick={() => !isUpdatingStatus && setShowStatusModal(false)}
+                        disabled={isUpdatingStatus}
+                        className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                      >
                         <X className="w-6 h-6" />
                       </button>
                     </div>
@@ -892,36 +921,87 @@ export function ConductorPortalNew() {
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => handleUpdateStatus("on-time")}
-                        className="cursor-pointer p-4 border-2 border-green-200 rounded-xl hover:bg-green-50 transition-all flex flex-col items-center gap-2"
+                        disabled={isUpdatingStatus}
+                        className={`cursor-pointer p-4 border-2 border-green-200 rounded-xl transition-all flex flex-col items-center justify-center gap-2 min-h-[120px] ${
+                          pendingStatus === "on-time"
+                            ? "bg-green-50 border-green-500 ring-2 ring-green-200 scale-[0.98]"
+                            : "hover:bg-green-50"
+                        } disabled:opacity-70 disabled:cursor-not-allowed`}
                       >
-                        <CheckCircle className="w-8 h-8 text-green-600" />
-                        <span className="text-sm font-medium text-gray-900">On Time</span>
+                        {pendingStatus === "on-time" ? (
+                          <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+                        ) : (
+                          <CheckCircle className="w-8 h-8 text-green-600" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900">
+                          {pendingStatus === "on-time" ? "Updating..." : "On Time"}
+                        </span>
                       </button>
 
                       <button
                         onClick={() => handleUpdateStatus("delayed", "Heavy traffic")}
-                        className="cursor-pointer p-4 border-2 border-yellow-200 rounded-xl hover:bg-yellow-50 transition-all flex flex-col items-center gap-2"
+                        disabled={isUpdatingStatus}
+                        className={`cursor-pointer p-4 border-2 border-yellow-200 rounded-xl transition-all flex flex-col items-center justify-center gap-2 min-h-[120px] ${
+                          pendingStatus === "delayed"
+                            ? "bg-yellow-50 border-yellow-500 ring-2 ring-yellow-200 scale-[0.98]"
+                            : "hover:bg-yellow-50"
+                        } disabled:opacity-70 disabled:cursor-not-allowed`}
                       >
-                        <Clock className="w-8 h-8 text-yellow-600" />
-                        <span className="text-sm font-medium text-gray-900">Delayed</span>
+                        {pendingStatus === "delayed" ? (
+                          <Loader2 className="w-8 h-8 text-yellow-600 animate-spin" />
+                        ) : (
+                          <Clock className="w-8 h-8 text-yellow-600" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900">
+                          {pendingStatus === "delayed" ? "Updating..." : "Delayed"}
+                        </span>
                       </button>
 
                       <button
                         onClick={() => handleUpdateStatus("stopped", "Taking a break")}
-                        className="cursor-pointer p-4 border-2 border-blue-200 rounded-xl hover:bg-blue-50 transition-all flex flex-col items-center gap-2"
+                        disabled={isUpdatingStatus}
+                        className={`cursor-pointer p-4 border-2 border-blue-200 rounded-xl transition-all flex flex-col items-center justify-center gap-2 min-h-[120px] ${
+                          pendingStatus === "stopped"
+                            ? "bg-blue-50 border-blue-500 ring-2 ring-blue-200 scale-[0.98]"
+                            : "hover:bg-blue-50"
+                        } disabled:opacity-70 disabled:cursor-not-allowed`}
                       >
-                        <Info className="w-8 h-8 text-blue-600" />
-                        <span className="text-sm font-medium text-gray-900">Stopped</span>
+                        {pendingStatus === "stopped" ? (
+                          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                        ) : (
+                          <Info className="w-8 h-8 text-blue-600" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900">
+                          {pendingStatus === "stopped" ? "Updating..." : "Stopped"}
+                        </span>
                       </button>
 
                       <button
                         onClick={() => handleUpdateStatus("emergency", "Emergency situation")}
-                        className="cursor-pointer p-4 border-2 border-red-200 rounded-xl hover:bg-red-50 transition-all flex flex-col items-center gap-2"
+                        disabled={isUpdatingStatus}
+                        className={`cursor-pointer p-4 border-2 border-red-200 rounded-xl transition-all flex flex-col items-center justify-center gap-2 min-h-[120px] ${
+                          pendingStatus === "emergency"
+                            ? "bg-red-50 border-red-500 ring-2 ring-red-200 scale-[0.98]"
+                            : "hover:bg-red-50"
+                        } disabled:opacity-70 disabled:cursor-not-allowed`}
                       >
-                        <AlertOctagon className="w-8 h-8 text-red-600" />
-                        <span className="text-sm font-medium text-gray-900">Emergency</span>
+                        {pendingStatus === "emergency" ? (
+                          <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
+                        ) : (
+                          <AlertOctagon className="w-8 h-8 text-red-600" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900">
+                          {pendingStatus === "emergency" ? "Updating..." : "Emergency"}
+                        </span>
                       </button>
                     </div>
+
+                    {isUpdatingStatus && (
+                      <div className="mt-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 flex items-center gap-3">
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+                        <p className="text-sm text-slate-700">Updating bus status. Please wait...</p>
+                      </div>
+                    )}
                   </motion.div>
                 </motion.div>
               )}

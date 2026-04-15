@@ -56,6 +56,9 @@ export function ConductorPortal() {
   const [showLostItemForm, setShowLostItemForm] = useState(false);
   const [busSelected, setBusSelected] = useState(false);
 
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<BusStatus | null>(null);
+
   useEffect(() => {
     const savedBus = loadSavedBus();
 
@@ -114,9 +117,34 @@ Payment: ${ticketData.paymentMethod}
   };
 
   const handleUpdateStatus = async (status: BusStatus, message: string = "") => {
-    const success = await updateStatus(status, message);
-    if (success) {
-      setShowStatusModal(false);
+    if (isUpdatingStatus) return;
+
+    setIsUpdatingStatus(true);
+    setPendingStatus(status);
+
+    // Give React one frame to render the loading state first
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
+
+    const startedAt = Date.now();
+
+    try {
+      const success = await updateStatus(status, message);
+
+      const elapsed = Date.now() - startedAt;
+      const minimumVisibleMs = 500;
+
+      if (elapsed < minimumVisibleMs) {
+        await new Promise((resolve) => setTimeout(resolve, minimumVisibleMs - elapsed));
+      }
+
+      if (success) {
+        setShowStatusModal(false);
+      }
+    } finally {
+      setIsUpdatingStatus(false);
+      setPendingStatus(null);
     }
   };
 
@@ -242,6 +270,8 @@ Payment: ${ticketData.paymentMethod}
         <StatusUpdateModal
           isOpen={showStatusModal}
           currentStatus={currentStatus}
+          isUpdatingStatus={isUpdatingStatus}
+          pendingStatus={pendingStatus}
           onClose={() => setShowStatusModal(false)}
           onUpdateStatus={handleUpdateStatus}
         />
