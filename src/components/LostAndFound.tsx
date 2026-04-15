@@ -1,29 +1,29 @@
-import { Calendar, CheckCircle, MapPin, Package, Phone, Plus, Search, Trash2, User, XCircle } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { LostAndFoundItem } from '../types';
-import { lostItemAPI } from '../utils/api';
+import { Calendar, CheckCircle, MapPin, Package, Phone, Plus, Search, Trash2, User, XCircle } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { LostAndFoundItem } from "../types";
+import { lostItemAPI } from "../utils/api";
 
 export function LostAndFound() {
   const [items, setItems] = useState<LostAndFoundItem[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'unclaimed' | 'claimed' | 'disposed'>('all');
-  const [filterCategory, setFilterCategory] = useState<'all' | LostAndFoundItem['category']>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "unclaimed" | "claimed" | "disposed">("all");
+  const [filterCategory, setFilterCategory] = useState<"all" | LostAndFoundItem["category"]>("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<LostAndFoundItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // New item form state
   const [newItem, setNewItem] = useState({
-    itemName: '',
-    description: '',
-    category: 'other' as LostAndFoundItem['category'],
-    busPlateNumber: '',
-    route: '',
-    foundBy: '',
-    location: '',
-    contactInfo: '',
+    itemName: "",
+    description: "",
+    category: "other" as LostAndFoundItem["category"],
+    busPlateNumber: "",
+    route: "",
+    foundBy: "",
+    location: "",
+    contactInfo: "",
   });
 
   useEffect(() => {
@@ -45,10 +45,10 @@ export function LostAndFound() {
       setItems(formattedItems);
       setIsLoading(false);
     } catch (error) {
-      console.error('Error loading lost items:', error);
+      console.error("Error loading lost items:", error);
       // Don't show error on initial load
       if (items.length > 0) {
-        toast.error('Failed to refresh lost items');
+        toast.error("Failed to refresh lost items");
       }
       setIsLoading(false);
     }
@@ -58,14 +58,14 @@ export function LostAndFound() {
     const matchesSearch =
       item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
-    const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
+    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
+    const matchesCategory = filterCategory === "all" || item.category === filterCategory;
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
   const handleAddItem = async () => {
     if (!newItem.itemName || !newItem.description || !newItem.busPlateNumber) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -80,20 +80,20 @@ export function LostAndFound() {
       await loadItems(); // Reload items from database
       setShowAddModal(false);
       resetForm();
-      toast.success('Lost item added successfully!');
+      toast.success("Lost item added successfully!");
     } catch (error) {
-      console.error('Error adding lost item:', error);
-      toast.error('Failed to add lost item. Please try again.');
+      console.error("Error adding lost item:", error);
+      toast.error("Failed to add lost item. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUpdateStatus = async (id: string, status: LostAndFoundItem['status']) => {
+  const handleUpdateStatus = async (id: string, status: LostAndFoundItem["status"]) => {
     setIsLoading(true);
     try {
       const updateData: any = { status };
-      if (status === 'claimed') {
+      if (status === "claimed") {
         updateData.claimedDate = new Date().toISOString();
       }
 
@@ -101,24 +101,24 @@ export function LostAndFound() {
       await loadItems(); // Reload items from database
       toast.success(`Item marked as ${status}!`);
     } catch (error) {
-      console.error('Error updating item status:', error);
-      toast.error('Failed to update item status.');
+      console.error("Error updating item status:", error);
+      toast.error("Failed to update item status.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+    if (!confirm("Are you sure you want to delete this item?")) return;
 
     setIsLoading(true);
     try {
       await lostItemAPI.delete(id);
       await loadItems(); // Reload items from database
-      toast.success('Item deleted successfully!');
+      toast.success("Item deleted successfully!");
     } catch (error) {
-      console.error('Error deleting item:', error);
-      toast.error('Failed to delete item.');
+      console.error("Error deleting item:", error);
+      toast.error("Failed to delete item.");
     } finally {
       setIsLoading(false);
     }
@@ -126,34 +126,34 @@ export function LostAndFound() {
 
   const resetForm = () => {
     setNewItem({
-      itemName: '',
-      description: '',
-      category: 'other',
-      busPlateNumber: '',
-      route: '',
-      foundBy: '',
-      location: '',
-      contactInfo: '',
+      itemName: "",
+      description: "",
+      category: "other",
+      busPlateNumber: "",
+      route: "",
+      foundBy: "",
+      location: "",
+      contactInfo: "",
     });
   };
 
-  const getCategoryIcon = (category: LostAndFoundItem['category']) => {
+  const getCategoryIcon = (category: LostAndFoundItem["category"]) => {
     const icons = {
-      electronics: '📱',
-      bag: '🎒',
-      clothing: '👕',
-      documents: '📄',
-      accessories: '👜',
-      other: '📦',
+      electronics: "📱",
+      bag: "🎒",
+      clothing: "👕",
+      documents: "📄",
+      accessories: "👜",
+      other: "📦",
     };
     return icons[category];
   };
 
-  const getStatusColor = (status: LostAndFoundItem['status']) => {
+  const getStatusColor = (status: LostAndFoundItem["status"]) => {
     const colors = {
-      unclaimed: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      claimed: 'bg-green-100 text-green-700 border-green-200',
-      disposed: 'bg-gray-100 text-gray-700 border-gray-200',
+      unclaimed: "bg-yellow-100 text-yellow-700 border-yellow-200",
+      claimed: "bg-green-100 text-green-700 border-green-200",
+      disposed: "bg-gray-100 text-gray-700 border-gray-200",
     };
     return colors[status];
   };
@@ -199,7 +199,7 @@ export function LostAndFound() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Unclaimed</p>
-                <p className="text-yellow-600 text-2xl">{items.filter((i) => i.status === 'unclaimed').length}</p>
+                <p className="text-yellow-600 text-2xl">{items.filter((i) => i.status === "unclaimed").length}</p>
               </div>
               <XCircle className="w-8 h-8 text-yellow-500" />
             </div>
@@ -214,7 +214,7 @@ export function LostAndFound() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Claimed</p>
-                <p className="text-green-600 text-2xl">{items.filter((i) => i.status === 'claimed').length}</p>
+                <p className="text-green-600 text-2xl">{items.filter((i) => i.status === "claimed").length}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
@@ -260,7 +260,7 @@ export function LostAndFound() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className="cursor-pointer px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             >
               <option value="all">All Status</option>
               <option value="unclaimed">Unclaimed</option>
@@ -272,7 +272,7 @@ export function LostAndFound() {
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value as any)}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className=" px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             >
               <option value="all">All Categories</option>
               <option value="electronics">Electronics</option>
@@ -351,17 +351,17 @@ export function LostAndFound() {
 
                   {/* Actions */}
                   <div className="flex gap-2">
-                    {item.status === 'unclaimed' && (
+                    {item.status === "unclaimed" && (
                       <button
-                        onClick={() => handleUpdateStatus(item.id, 'claimed')}
+                        onClick={() => handleUpdateStatus(item.id, "claimed")}
                         className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
                       >
                         Mark Claimed
                       </button>
                     )}
-                    {item.status !== 'disposed' && (
+                    {item.status !== "disposed" && (
                       <button
-                        onClick={() => handleUpdateStatus(item.id, 'disposed')}
+                        onClick={() => handleUpdateStatus(item.id, "disposed")}
                         className="flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
                       >
                         Dispose
@@ -445,7 +445,7 @@ export function LostAndFound() {
                       <select
                         value={newItem.category}
                         onChange={(e) => setNewItem({ ...newItem, category: e.target.value as any })}
-                        className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="cursor-pointer w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="electronics">Electronics</option>
                         <option value="bag">Bag</option>

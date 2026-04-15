@@ -802,7 +802,7 @@ export function FleetManagement() {
                     <select
                       value={busForm.route}
                       onChange={(e) => setBusForm({ ...busForm, route: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                      className="cursor-pointer w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                     >
                       <option value="">Select a route</option>
                       <option value="Dasmariñas - Alabang">Dasmariñas - Alabang</option>

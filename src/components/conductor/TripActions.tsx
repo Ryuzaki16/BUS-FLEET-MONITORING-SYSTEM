@@ -1,5 +1,5 @@
-import { AlertTriangle, Package, Plus, Ticket, Users } from 'lucide-react';
-import { motion } from 'motion/react';
+import { AlertTriangle, Package, Plus, Ticket, Users } from "lucide-react";
+import { motion } from "motion/react";
 
 interface TripActionsProps {
   passengerCount: number;
@@ -25,7 +25,7 @@ export function TripActions({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
           onClick={onIssueTicket}
-          className="col-span-1 sm:col-span-2 lg:col-span-2 w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl p-5 sm:p-6 md:p-8 shadow-2xl hover:shadow-3xl transition-all active:scale-[0.98] sm:hover:scale-[1.02] group"
+          className="cursor-pointer col-span-1 sm:col-span-2 lg:col-span-2 w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl p-5 sm:p-6 md:p-8 shadow-2xl hover:shadow-3xl transition-all active:scale-[0.98] sm:hover:scale-[1.02] group"
         >
           <div className="flex items-center justify-center gap-3 sm:gap-4">
             <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
@@ -113,7 +113,7 @@ function ActionButton({ icon, label, gradient, onClick, delay }: ActionButtonPro
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
       onClick={onClick}
-      className="bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all flex flex-col items-center gap-2 sm:gap-3"
+      className="cursor-pointer bg-white rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all flex flex-col items-center gap-2 sm:gap-3"
     >
       <div
         className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center`}

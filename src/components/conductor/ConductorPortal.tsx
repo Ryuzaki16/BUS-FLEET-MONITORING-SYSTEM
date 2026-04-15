@@ -186,7 +186,7 @@ Payment: ${ticketData.paymentMethod}
             <button
               disabled={isLoading}
               onClick={handleChangeBus}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-100 px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="cursor-pointer inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-100 px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <LogOut className="h-4 w-4" />
               <span>Change Bus</span>

@@ -63,7 +63,7 @@ export function BusSelectionScreen({
             <button
               onClick={onValidate}
               disabled={isValidating || !busNumberInput.trim()}
-              className="w-full min-h-12 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-blue-700 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-indigo-600 disabled:hover:to-blue-600 flex items-center justify-center gap-2 shadow-md"
+              className="cursor-pointer w-full min-h-12 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-blue-700 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-indigo-600 disabled:hover:to-blue-600 flex items-center justify-center gap-2 shadow-md"
             >
               {isValidating ? (
                 <>

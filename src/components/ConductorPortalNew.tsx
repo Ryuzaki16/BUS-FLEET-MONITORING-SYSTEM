@@ -560,7 +560,7 @@ export function ConductorPortalNew() {
             <button
               disabled={isLoading}
               onClick={handleChangeBus}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="cursor-pointer inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <LogOut className="w-4 h-4" />
               <span>Change Bus</span>
@@ -663,7 +663,7 @@ export function ConductorPortalNew() {
                   <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center flex-shrink-0">
                     <Plus className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
                   </div>
-                  <div className="text-left min-w-0">
+                  <div className="cursor-pointer text-left min-w-0">
                     <h3 className="text-white text-lg sm:text-xl md:text-2xl mb-1 font-semibold">Issue New Ticket</h3>
                     <p className="text-green-100 text-sm sm:text-base md:text-lg">Tap to add a passenger</p>
                   </div>
@@ -780,7 +780,7 @@ export function ConductorPortalNew() {
                     onClick={(e) => e.stopPropagation()}
                     className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl"
                   >
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="cursor-pointer flex items-center justify-between mb-6">
                       <h3 className="text-gray-900 text-lg sm:text-xl font-semibold">Issue New Ticket</h3>
                       <button onClick={() => setShowTicketForm(false)} className="text-gray-400 hover:text-gray-600">
                         <X className="w-6 h-6" />
@@ -793,7 +793,7 @@ export function ConductorPortalNew() {
                         <select
                           value={boardingPoint}
                           onChange={(e) => setBoardingPoint(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
+                          className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                         >
                           <option value="Dasmariñas">Dasmariñas</option>
                           <option value="Zapote">Zapote</option>
@@ -810,7 +810,7 @@ export function ConductorPortalNew() {
                             const route = commonRoutes.find((r) => r.from === boardingPoint && r.to === e.target.value);
                             if (route) setFare(route.fare);
                           }}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
+                          className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                         >
                           <option value="Alabang">Alabang</option>
                           <option value="Sucat">Sucat</option>
@@ -836,7 +836,7 @@ export function ConductorPortalNew() {
                         <select
                           value={paymentMethod}
                           onChange={(e) => setPaymentMethod(e.target.value as "cash" | "digital")}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
+                          className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                         >
                           <option value="cash">Cash</option>
                           <option value="digital">Digital</option>
@@ -892,7 +892,7 @@ export function ConductorPortalNew() {
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => handleUpdateStatus("on-time")}
-                        className="p-4 border-2 border-green-200 rounded-xl hover:bg-green-50 transition-all flex flex-col items-center gap-2"
+                        className="cursor-pointer p-4 border-2 border-green-200 rounded-xl hover:bg-green-50 transition-all flex flex-col items-center gap-2"
                       >
                         <CheckCircle className="w-8 h-8 text-green-600" />
                         <span className="text-sm font-medium text-gray-900">On Time</span>
@@ -900,7 +900,7 @@ export function ConductorPortalNew() {
 
                       <button
                         onClick={() => handleUpdateStatus("delayed", "Heavy traffic")}
-                        className="p-4 border-2 border-yellow-200 rounded-xl hover:bg-yellow-50 transition-all flex flex-col items-center gap-2"
+                        className="cursor-pointer p-4 border-2 border-yellow-200 rounded-xl hover:bg-yellow-50 transition-all flex flex-col items-center gap-2"
                       >
                         <Clock className="w-8 h-8 text-yellow-600" />
                         <span className="text-sm font-medium text-gray-900">Delayed</span>
@@ -908,7 +908,7 @@ export function ConductorPortalNew() {
 
                       <button
                         onClick={() => handleUpdateStatus("stopped", "Taking a break")}
-                        className="p-4 border-2 border-blue-200 rounded-xl hover:bg-blue-50 transition-all flex flex-col items-center gap-2"
+                        className="cursor-pointer p-4 border-2 border-blue-200 rounded-xl hover:bg-blue-50 transition-all flex flex-col items-center gap-2"
                       >
                         <Info className="w-8 h-8 text-blue-600" />
                         <span className="text-sm font-medium text-gray-900">Stopped</span>
@@ -916,7 +916,7 @@ export function ConductorPortalNew() {
 
                       <button
                         onClick={() => handleUpdateStatus("emergency", "Emergency situation")}
-                        className="p-4 border-2 border-red-200 rounded-xl hover:bg-red-50 transition-all flex flex-col items-center gap-2"
+                        className="cursor-pointer p-4 border-2 border-red-200 rounded-xl hover:bg-red-50 transition-all flex flex-col items-center gap-2"
                       >
                         <AlertOctagon className="w-8 h-8 text-red-600" />
                         <span className="text-sm font-medium text-gray-900">Emergency</span>
@@ -978,7 +978,7 @@ export function ConductorPortalNew() {
                         <select
                           value={lostItem.category}
                           onChange={(e) => setLostItem({ ...lostItem, category: e.target.value })}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
+                          className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                         >
                           <option value="electronics">Electronics</option>
                           <option value="bag">Bag</option>

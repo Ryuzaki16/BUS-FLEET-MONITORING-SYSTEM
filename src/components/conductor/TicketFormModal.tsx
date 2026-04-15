@@ -69,9 +69,9 @@ export function TicketFormModal({ isOpen, isLoading, onClose, onIssueTicket }: T
             onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl"
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="cursor-pointer flex items-center justify-between mb-6">
               <h3 className="text-gray-900">Issue New Ticket</h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <button onClick={onClose} className="cursor-pointer text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -82,7 +82,7 @@ export function TicketFormModal({ isOpen, isLoading, onClose, onIssueTicket }: T
                 <select
                   value={boardingPoint}
                   onChange={(e) => setBoardingPoint(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
+                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                 >
                   {BOARDING_POINTS.map((point) => (
                     <option key={point} value={point}>
@@ -97,7 +97,7 @@ export function TicketFormModal({ isOpen, isLoading, onClose, onIssueTicket }: T
                 <select
                   value={destination}
                   onChange={(e) => handleDestinationChange(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
+                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                 >
                   {DESTINATIONS.map((dest) => (
                     <option key={dest} value={dest}>
@@ -124,7 +124,7 @@ export function TicketFormModal({ isOpen, isLoading, onClose, onIssueTicket }: T
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="cursor-pointer w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>

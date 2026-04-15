@@ -1,13 +1,13 @@
-import { Calendar, MapPin, Package, Phone, Search, User } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { LostAndFoundItem } from '../types';
-import { lostItemAPI } from '../utils/api';
+import { Calendar, MapPin, Package, Phone, Search, User } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { LostAndFoundItem } from "../types";
+import { lostItemAPI } from "../utils/api";
 
 export function LostAndFoundView() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState<'all' | LostAndFoundItem['category']>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState<"all" | LostAndFoundItem["category"]>("all");
   const [selectedItem, setSelectedItem] = useState<LostAndFoundItem | null>(null);
   const [items, setItems] = useState<LostAndFoundItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,42 +38,42 @@ export function LostAndFoundView() {
       setItems(formattedItems);
       setIsLoading(false);
     } catch (error) {
-      console.error('Error loading lost items:', error);
+      console.error("Error loading lost items:", error);
       // Don't show error on initial load
       if (items.length > 0) {
-        toast.error('Failed to refresh lost items');
+        toast.error("Failed to refresh lost items");
       }
       setIsLoading(false);
     }
   };
 
   // Only show unclaimed items to passengers
-  const unclaimedItems = items.filter((item) => item.status === 'unclaimed');
+  const unclaimedItems = items.filter((item) => item.status === "unclaimed");
 
   const filteredItems = unclaimedItems.filter((item) => {
     const matchesSearch =
       item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
+    const matchesCategory = filterCategory === "all" || item.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const getCategoryIcon = (category: LostAndFoundItem['category']) => {
+  const getCategoryIcon = (category: LostAndFoundItem["category"]) => {
     const icons = {
-      electronics: '📱',
-      bag: '🎒',
-      clothing: '👕',
-      documents: '📄',
-      accessories: '👜',
-      other: '📦',
+      electronics: "📱",
+      bag: "🎒",
+      clothing: "👕",
+      documents: "📄",
+      accessories: "👜",
+      other: "📦",
     };
     return icons[category];
   };
 
   const getDaysAgo = (date: Date) => {
     const days = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
+    if (days === 0) return "Today";
+    if (days === 1) return "Yesterday";
     return `${days} days ago`;
   };
 
@@ -123,7 +123,7 @@ export function LostAndFoundView() {
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value as any)}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className="cursor-pointer px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             >
               <option value="all">All Categories</option>
               <option value="electronics">📱 Electronics</option>
@@ -206,9 +206,9 @@ export function LostAndFoundView() {
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-lg mb-2">No items found</p>
             <p className="text-gray-400 text-sm">
-              {searchTerm || filterCategory !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'No lost items have been reported yet'}
+              {searchTerm || filterCategory !== "all"
+                ? "Try adjusting your search or filters"
+                : "No lost items have been reported yet"}
             </p>
           </motion.div>
         )}
