@@ -20,9 +20,9 @@ export function useGPSTracking(busId: string | null) {
 
       try {
         await busAPI.updateLocation(busId, location);
-        console.log("Bus location updated:", location);
+        // console.log("Bus location updated:", location);
       } catch (error) {
-        console.error("Error updating bus location:", error);
+        // console.error("Error updating bus location:", error);
       }
     },
     [busId],
@@ -35,12 +35,12 @@ export function useGPSTracking(busId: string | null) {
         lng: position.coords.longitude,
       };
 
-      console.log("GPS position update:", {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        accuracy: position.coords.accuracy,
-        platform: Capacitor.getPlatform(),
-      });
+      // console.log("GPS position update:", {
+      //   lat: position.coords.latitude,
+      //   lng: position.coords.longitude,
+      //   accuracy: position.coords.accuracy,
+      //   platform: Capacitor.getPlatform(),
+      // });
 
       setCurrentLocation(location);
       updateBusLocation(location);
@@ -81,14 +81,14 @@ export function useGPSTracking(busId: string | null) {
     const watchId = navigator.geolocation.watchPosition(handlePositionUpdate, handlePositionError, GPS_OPTIONS);
 
     watchIdRef.current = watchId;
-    console.log("GPS tracking started with watch ID:", watchId);
+    // console.log("GPS tracking started with watch ID:", watchId);
   }, [handlePositionUpdate, handlePositionError]);
 
   const stopTracking = useCallback(() => {
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
-      console.log("GPS tracking stopped");
+      // console.log("GPS tracking stopped");
     }
   }, []);
 
@@ -101,7 +101,7 @@ export function useGPSTracking(busId: string | null) {
           const permission = await Geolocation.checkPermissions();
           const granted = permission.location === "granted" || permission.coarseLocation === "granted";
 
-          console.log("Checked Android GPS permissions:", permission);
+          // console.log("Checked Android GPS permissions:", permission);
 
           setIsGranted(granted && gpsGranted);
 
@@ -137,7 +137,7 @@ export function useGPSTracking(busId: string | null) {
         const permission = await Geolocation.requestPermissions();
         const granted = permission.location === "granted" || permission.coarseLocation === "granted";
 
-        console.log("Requested Android GPS permission:", permission);
+        // console.log("Requested Android GPS permission:", permission);
 
         if (!granted) {
           toast.error("GPS permission denied. Please enable location services.");
@@ -162,12 +162,12 @@ export function useGPSTracking(busId: string | null) {
               lng: position.coords.longitude,
             };
 
-            console.log("Initial GPS position:", {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              accuracy: position.coords.accuracy,
-              platform: Capacitor.getPlatform(),
-            });
+            // console.log("Initial GPS position:", {
+            //   lat: position.coords.latitude,
+            //   lng: position.coords.longitude,
+            //   accuracy: position.coords.accuracy,
+            //   platform: Capacitor.getPlatform(),
+            // });
 
             setCurrentLocation(location);
             updateBusLocation(location);

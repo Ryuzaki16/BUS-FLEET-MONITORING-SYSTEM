@@ -87,7 +87,7 @@ export function StatusUpdateModal({
               <button
                 onClick={() => !isUpdatingStatus && onClose()}
                 disabled={isUpdatingStatus}
-                className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="cursor-pointer text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <X className="w-6 h-6" />
               </button>
