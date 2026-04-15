@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router';
-import { Toaster } from './ui/sonner';
+import { useEffect } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router";
+import { Toaster } from "./ui/sonner";
 
 export default function Root() {
   const navigate = useNavigate();
@@ -8,8 +8,8 @@ export default function Root() {
 
   useEffect(() => {
     // Redirect to passenger portal by default when at root
-    if (location.pathname === '/') {
-      navigate('/passenger', { replace: true });
+    if (location.pathname === "/") {
+      navigate("/conductor", { replace: true });
     }
   }, [location.pathname, navigate]);
 

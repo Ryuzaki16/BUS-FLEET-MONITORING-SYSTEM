@@ -1,27 +1,28 @@
-import { LogOut } from 'lucide-react';
-import { motion } from 'motion/react';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { LogOut } from "lucide-react";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 // Hooks
-import { useBusSelection, useBusStatus } from '../../hooks/useBusManagement';
-import { useGPSTracking } from '../../hooks/useGPSTracking';
-import { useTripManagement } from '../../hooks/useTripManagement';
+import { useBusSelection, useBusStatus } from "../../hooks/useBusManagement";
+import { useTripManagement } from "../../hooks/useTripManagement";
 
 // Components
-import { BusSelectionScreen } from './BusSelectionScreen';
-import { GPSPermissionModal } from './GPSPermissionModal';
-import { LostItemFormModal } from './LostItemFormModal';
-import { PassengerList } from './PassengerList';
-import { StatusUpdateModal } from './StatusUpdateModal';
-import { TicketFormData, TicketFormModal } from './TicketFormModal';
-import { TripActions } from './TripActions';
-import { TripCard } from './TripCard';
+import { BusSelectionScreen } from "./BusSelectionScreen";
+import { GPSPermissionModal } from "./GPSPermissionModal";
+import { LostItemFormModal } from "./LostItemFormModal";
+import { PassengerList } from "./PassengerList";
+import { StatusUpdateModal } from "./StatusUpdateModal";
+import { TicketFormData, TicketFormModal } from "./TicketFormModal";
+import { TripActions } from "./TripActions";
+import { TripCard } from "./TripCard";
 
 // Types
-import { STORAGE_KEYS } from '../../constants/conductor';
-import { BusStatus, LostItem } from '../../types/conductor';
-import { lostItemAPI } from '../../utils/api';
+import { STORAGE_KEYS } from "../../constants/conductor";
+import { useGPSTracking } from "../../hooks/useGPSTracking";
+import { BusPrinter } from "../../plugins/printer";
+import { BusStatus, LostItem } from "../../types/conductor";
+import { lostItemAPI } from "../../utils/api";
 
 export function ConductorPortal() {
   // Bus Management
@@ -65,7 +66,7 @@ export function ConductorPortal() {
     const savedBus = loadSavedBus();
     if (savedBus) {
       setBusSelected(true);
-      const alreadyHandled = ['true', 'skipped'].includes(localStorage.getItem(STORAGE_KEYS.GPS_GRANTED) ?? '');
+      const alreadyHandled = ["true", "skipped"].includes(localStorage.getItem(STORAGE_KEYS.GPS_GRANTED) ?? "");
       setShowGpsModal(!alreadyHandled);
       loadActiveTrip(savedBus.id);
     }
@@ -81,20 +82,42 @@ export function ConductorPortal() {
     }
   };
 
+  const handleIssueTicket = async (ticketData: TicketFormData) => {
+    const success = await addPassenger(ticketData);
+
+    if (!success) return false;
+
+    try {
+      await BusPrinter.printReceipt({
+        text: `
+DASVAN DOTSCOOP
+Ticket No: ${ticketData.ticketNumber}
+Bus: ${busInfo?.plateNumber ?? "N/A"}
+Route: ${busInfo?.route ?? "N/A"}
+From: ${ticketData.boardingPoint}
+To: ${ticketData.destination}
+Fare: PHP ${ticketData.fare}
+Payment: ${ticketData.paymentMethod}
+      `.trim(),
+      });
+    } catch (error) {
+      console.error("Print failed:", error);
+      toast.error("Ticket issued, but printing failed.");
+    }
+
+    return true;
+  };
+
   const handleChangeBus = () => {
     if (tripActive) {
-      toast.error('Please end the current trip before changing bus.');
+      toast.error("Please end the current trip before changing bus.");
       return;
     }
     clearBus();
     setBusSelected(false);
   };
 
-  const handleIssueTicket = async (ticketData: TicketFormData) => {
-    return await addPassenger(ticketData);
-  };
-
-  const handleUpdateStatus = async (status: BusStatus, message: string = '') => {
+  const handleUpdateStatus = async (status: BusStatus, message: string = "") => {
     const success = await updateStatus(status, message);
     if (success) {
       setShowStatusModal(false);
@@ -114,11 +137,11 @@ export function ConductorPortal() {
         foundBy: busInfo.driver,
       });
 
-      toast.success('Lost item reported successfully!');
+      toast.success("Lost item reported successfully!");
       return true;
     } catch (error) {
-      console.error('Error reporting lost item:', error);
-      toast.error('Failed to report lost item. Please try again.');
+      console.error("Error reporting lost item:", error);
+      toast.error("Failed to report lost item. Please try again.");
       return false;
     }
   };
@@ -247,7 +270,7 @@ function NoActiveTripPlaceholder({ busPlateNumber }: NoActiveTripPlaceholderProp
       <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400"
         >
           ⏱️

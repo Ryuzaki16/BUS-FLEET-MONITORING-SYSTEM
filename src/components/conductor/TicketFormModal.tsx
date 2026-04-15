@@ -1,7 +1,7 @@
-import { CheckCircle, X } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
-import { BOARDING_POINTS, COMMON_ROUTES, DESTINATIONS } from '../../constants/conductor';
+import { CheckCircle, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
+import { BOARDING_POINTS, COMMON_ROUTES, DESTINATIONS } from "../../constants/conductor";
 
 interface TicketFormModalProps {
   isOpen: boolean;
@@ -15,7 +15,7 @@ export interface TicketFormData {
   boardingPoint: string;
   destination: string;
   fare: number;
-  paymentMethod: 'cash' | 'digital';
+  paymentMethod: "cash" | "digital";
 }
 
 export function TicketFormModal({ isOpen, isLoading, onClose, onIssueTicket }: TicketFormModalProps) {
@@ -39,7 +39,7 @@ export function TicketFormModal({ isOpen, isLoading, onClose, onIssueTicket }: T
       boardingPoint,
       destination,
       fare,
-      paymentMethod: 'cash',
+      paymentMethod: "cash",
     };
 
     const success = await onIssueTicket(ticketData);
