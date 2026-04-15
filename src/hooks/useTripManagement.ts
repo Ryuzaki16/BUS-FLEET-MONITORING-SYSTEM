@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BusInfo, Passenger } from "../types/conductor";
 import { passengerAPI, tripAPI } from "../utils/api";
@@ -7,9 +7,15 @@ export function useTripManagement(busInfo: BusInfo | null) {
   const [isActive, setIsActive] = useState(false);
   const [currentTripId, setCurrentTripId] = useState<string | null>(null);
   const [passengers, setPassengers] = useState<Passenger[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // 🔥 Better loading management (handles concurrency)
+  const [loadingCount, setLoadingCount] = useState(0);
+  const startLoading = () => setLoadingCount((c) => c + 1);
+  const stopLoading = () => setLoadingCount((c) => Math.max(0, c - 1));
+  const isLoading = useMemo(() => loadingCount > 0, [loadingCount]);
 
   const loadActiveTrip = useCallback(async (busId: string) => {
+    startLoading();
     try {
       const response = await tripAPI.getOngoing();
       const activeTrip = response.data.find((trip: any) => trip.busId === busId);
@@ -19,6 +25,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
         setCurrentTripId(activeTrip.id);
 
         const passengersResponse = await passengerAPI.getByTrip(activeTrip.id);
+
         setPassengers(
           passengersResponse.data.map((p: any) => ({
             ...p,
@@ -30,6 +37,8 @@ export function useTripManagement(busInfo: BusInfo | null) {
       }
     } catch (error) {
       console.error("Error loading active trip:", error);
+    } finally {
+      stopLoading();
     }
   }, []);
 
@@ -39,9 +48,10 @@ export function useTripManagement(busInfo: BusInfo | null) {
       return false;
     }
 
-    setIsLoading(true);
+    startLoading();
     try {
       const tripId = `trip_${Date.now()}`;
+
       await tripAPI.create({
         id: tripId,
         busId: busInfo.id,
@@ -53,6 +63,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
       setIsActive(true);
       setCurrentTripId(tripId);
       setPassengers([]);
+
       toast.success("Trip started successfully!");
       return true;
     } catch (error) {
@@ -60,19 +71,21 @@ export function useTripManagement(busInfo: BusInfo | null) {
       toast.error("Failed to start trip. Please try again.");
       return false;
     } finally {
-      setIsLoading(false);
+      stopLoading();
     }
   }, [busInfo]);
 
   const endTrip = useCallback(async () => {
     if (!currentTripId) return false;
 
-    setIsLoading(true);
+    startLoading();
     try {
       await tripAPI.end(currentTripId);
+
       setIsActive(false);
       setCurrentTripId(null);
       setPassengers([]);
+
       toast.success("Trip ended successfully!");
       return true;
     } catch (error) {
@@ -80,7 +93,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
       toast.error("Failed to end trip. Please try again.");
       return false;
     } finally {
-      setIsLoading(false);
+      stopLoading();
     }
   }, [currentTripId]);
 
@@ -91,7 +104,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
         return false;
       }
 
-      setIsLoading(true);
+      startLoading();
       try {
         const passengerId = `TKT-${Date.now()}`;
         const newPassenger = {
@@ -101,7 +114,9 @@ export function useTripManagement(busInfo: BusInfo | null) {
 
         await passengerAPI.add(currentTripId, newPassenger);
 
-        setPassengers([...passengers, { ...newPassenger, timestamp: new Date() }]);
+        // ✅ Functional update (no stale state)
+        setPassengers((prev) => [...prev, { ...newPassenger, timestamp: new Date() }]);
+
         toast.success("Ticket issued successfully!");
         return true;
       } catch (error) {
@@ -109,20 +124,23 @@ export function useTripManagement(busInfo: BusInfo | null) {
         toast.error("Failed to issue ticket. Please try again.");
         return false;
       } finally {
-        setIsLoading(false);
+        stopLoading();
       }
     },
-    [currentTripId, passengers],
+    [currentTripId],
   );
 
   const removePassenger = useCallback(
     async (passengerId: string) => {
       if (!currentTripId) return false;
 
-      setIsLoading(true);
+      startLoading();
       try {
         await passengerAPI.remove(currentTripId, passengerId);
-        setPassengers(passengers.filter((p) => p.id !== passengerId));
+
+        // ✅ Functional update
+        setPassengers((prev) => prev.filter((p) => p.id !== passengerId));
+
         toast.success("Passenger removed successfully!");
         return true;
       } catch (error) {
@@ -130,10 +148,10 @@ export function useTripManagement(busInfo: BusInfo | null) {
         toast.error("Failed to remove passenger.");
         return false;
       } finally {
-        setIsLoading(false);
+        stopLoading();
       }
     },
-    [currentTripId, passengers],
+    [currentTripId],
   );
 
   const getTotalRevenue = useCallback(() => {
