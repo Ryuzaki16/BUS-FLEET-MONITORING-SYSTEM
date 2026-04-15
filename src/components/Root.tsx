@@ -1,3 +1,4 @@
+import { Capacitor } from "@capacitor/core";
 import { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { Toaster } from "./ui/sonner";
@@ -7,9 +8,12 @@ export default function Root() {
   const location = useLocation();
 
   useEffect(() => {
-    // Redirect to passenger portal by default when at root
     if (location.pathname === "/") {
-      navigate("/conductor", { replace: true });
+      const isCapacitorApp = Capacitor.isNativePlatform();
+
+      navigate(isCapacitorApp ? "/conductor" : "/passenger", {
+        replace: true,
+      });
     }
   }, [location.pathname, navigate]);
 
