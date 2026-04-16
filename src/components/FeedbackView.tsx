@@ -6,7 +6,7 @@ export interface FeedbackViewProps {
   setBusID: (id: string) => void;
 }
 
-interface FeedbackItem {
+export interface FeedbackItem {
   id: string;
   busId: string;
   name?: string;
