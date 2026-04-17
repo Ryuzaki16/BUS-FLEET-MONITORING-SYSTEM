@@ -5,7 +5,7 @@ import { Passenger } from "../../types/conductor";
 
 interface PassengerListProps {
   passengers: Passenger[];
-  onRemovePassenger: (id: string) => Promise<void> | void;
+  onRemovePassenger: (id: string) => Promise<boolean> | Promise<void> | void;
 }
 
 export function PassengerList({ passengers, onRemovePassenger }: PassengerListProps) {
@@ -20,7 +20,6 @@ export function PassengerList({ passengers, onRemovePassenger }: PassengerListPr
 
     try {
       setRemovingPassengerId(id);
-
       await Promise.resolve(onRemovePassenger(id));
     } finally {
       setRemovingPassengerId(null);

@@ -59,6 +59,11 @@ export function ConductorPortal() {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<BusStatus | null>(null);
 
+  const [isIssuingTicket, setIsIssuingTicket] = useState(false);
+  const [isPrintingReceipt, setIsPrintingReceipt] = useState(false);
+  const [lastReceiptText, setLastReceiptText] = useState<string | null>(null);
+  const [lastReceiptQrText, setLastReceiptQrText] = useState<string | null>(null);
+
   useEffect(() => {
     const savedBus = loadSavedBus();
 
@@ -68,7 +73,7 @@ export function ConductorPortal() {
       setShowGpsModal(!alreadyHandled);
       loadActiveTrip(savedBus.id);
     }
-  }, []);
+  }, [loadSavedBus, loadActiveTrip]);
 
   const handleValidateBus = async () => {
     const bus = await validateBus();
@@ -80,30 +85,146 @@ export function ConductorPortal() {
     }
   };
 
-  const handleIssueTicket = async (ticketData: TicketFormData) => {
-    const success = await addPassenger(ticketData);
+  const getTrackingQrText = () => {
+    if (typeof window === "undefined" || !busInfo?.id) return null;
+    return `${window.location.origin}/bus/track/${busInfo.id}`;
+  };
 
-    if (!success) return false;
+  const formatReceipt = (ticketData: TicketFormData) => {
+    const now = new Date();
+    const date = now.toLocaleDateString();
+    const time = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-    try {
-      await BusPrinter.printReceipt({
-        text: `
-DASVAN DOTSCOOP
+    return `
+Dasmarinas Van Drivers Operators
+Transport Service Cooperative
+Luisa Bldg. 3rd Floor, Camerino Ave,
+Zone 4 Dasmarinas City, Cavite
+Tel No: 09772796996
+------------------------------------------------------
+Date: ${date}
+Time: ${time}
+
 Ticket No: ${ticketData.ticketNumber}
-Bus: ${busInfo?.plateNumber ?? "N/A"}
-Route: ${busInfo?.route ?? "N/A"}
+
+Bus Driver Name: ${busInfo?.driver ?? "N/A"}
+Bus No: ${busInfo?.plateNumber ?? "N/A"}
+Seat Capacity: ${busInfo?.capacity ?? "N/A"}
+------------------------------------------------------
 From: ${ticketData.boardingPoint}
 To: ${ticketData.destination}
-Fare: PHP ${ticketData.fare}
-Payment: ${ticketData.paymentMethod}
-        `.trim(),
-      });
-    } catch (error) {
-      console.error("Print failed:", error);
-      toast.error("Ticket issued, but printing failed.");
+
+Fare: PHP ${Number(ticketData.fare).toFixed(2)}
+Payment: ${ticketData.paymentMethod.toUpperCase()}
+------------------------------------------------------
+Thank you, have a safe trip
+
+Scan to view live location and rate your trip
+
+Scan Me!
+    `.trim();
+  };
+
+  const handleTestQrPrint = async () => {
+    if (!busInfo?.id) {
+      toast.error("Bus info is not available.");
+      return;
     }
 
-    return true;
+    const qrText = `${window.location.origin}/bus/track/${busInfo.id}`;
+
+    try {
+      const result = await BusPrinter.testQrPrint({ qrText });
+      console.log("QR print test result:", result);
+      toast.success(result.success ? "QR test print sent" : "QR test print failed");
+    } catch (error) {
+      console.error("QR print test failed:", error);
+      toast.error("QR print test failed");
+    }
+  };
+
+  const handleTestQrCapability = async () => {
+    if (!busInfo?.id) {
+      toast.error("Bus info is not available.");
+      return;
+    }
+
+    const qrText = `${window.location.origin}/bus/track/${busInfo.id}`;
+
+    try {
+      const result = await BusPrinter.testQrCapability({ qrText });
+      console.log("QR capability result:", result);
+      toast.success(JSON.stringify(result));
+    } catch (error) {
+      console.error("QR capability test failed:", error);
+      toast.error("QR capability test failed");
+    }
+  };
+
+  const handleIssueTicket = async (ticketData: TicketFormData) => {
+    setIsIssuingTicket(true);
+
+    try {
+      const success = await addPassenger(ticketData);
+
+      if (!success) {
+        return false;
+      }
+
+      const receiptText = formatReceipt(ticketData);
+      const qrText = getTrackingQrText();
+
+      setLastReceiptText(receiptText);
+      setLastReceiptQrText(qrText);
+
+      toast.success("Ticket issued successfully");
+
+      setIsPrintingReceipt(true);
+      try {
+        await BusPrinter.printReceipt({
+          text: receiptText,
+          ...(qrText ? { qrText, enableQr: true } : {}),
+        });
+        toast.success("Receipt sent to printer");
+      } catch (error) {
+        console.error("Print failed:", error);
+        toast.error("Ticket issued, but printing failed.");
+      } finally {
+        setIsPrintingReceipt(false);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Issue ticket failed:", error);
+      toast.error("Failed to issue ticket. Please try again.");
+      return false;
+    } finally {
+      setIsIssuingTicket(false);
+    }
+  };
+
+  const handleReprintLastReceipt = async () => {
+    if (!lastReceiptText) {
+      toast.error("No receipt available to reprint.");
+      return;
+    }
+
+    try {
+      setIsPrintingReceipt(true);
+      await BusPrinter.printReceipt({
+        text: lastReceiptText,
+        ...(lastReceiptQrText ? { qrText: lastReceiptQrText, enableQr: true } : {}),
+      });
+      toast.success("Receipt sent to printer");
+    } catch (error) {
+      console.error("Reprint failed:", error);
+      toast.error("Failed to reprint receipt.");
+    } finally {
+      setIsPrintingReceipt(false);
+    }
   };
 
   const handleChangeBus = () => {
@@ -122,7 +243,6 @@ Payment: ${ticketData.paymentMethod}
     setIsUpdatingStatus(true);
     setPendingStatus(status);
 
-    // Give React one frame to render the loading state first
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => resolve());
     });
@@ -212,7 +332,7 @@ Payment: ${ticketData.paymentMethod}
             </div>
 
             <button
-              disabled={isLoading}
+              disabled={isLoading || isIssuingTicket || isPrintingReceipt}
               onClick={handleChangeBus}
               className="cursor-pointer inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-100 px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
@@ -245,6 +365,20 @@ Payment: ${ticketData.paymentMethod}
                 onReportLostItem={() => setShowLostItemForm(true)}
               />
 
+              <button
+                onClick={handleTestQrCapability}
+                className="cursor-pointer w-full rounded-xl bg-purple-600 px-4 py-3 text-white font-medium hover:bg-purple-700 transition"
+              >
+                Test QR Capability
+              </button>
+
+              <button
+                onClick={handleTestQrPrint}
+                className="cursor-pointer w-full rounded-xl bg-indigo-600 px-4 py-3 text-white font-medium hover:bg-indigo-700 transition"
+              >
+                Test QR Print
+              </button>
+
               <PassengerList passengers={passengers} onRemovePassenger={removePassenger} />
             </>
           ) : (
@@ -262,9 +396,11 @@ Payment: ${ticketData.paymentMethod}
 
         <TicketFormModal
           isOpen={showTicketForm}
-          isLoading={isLoading}
+          isIssuingTicket={isIssuingTicket}
+          isPrintingReceipt={isPrintingReceipt}
           onClose={() => setShowTicketForm(false)}
           onIssueTicket={handleIssueTicket}
+          onReprintLastReceipt={handleReprintLastReceipt}
         />
 
         <StatusUpdateModal

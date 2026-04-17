@@ -2,16 +2,28 @@ import { Capacitor } from "@capacitor/core";
 import { Geolocation } from "@capacitor/geolocation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { GPS_ERROR_CODES, GPS_OPTIONS, STORAGE_KEYS } from "../constants/conductor";
+import { GPS_ERROR_CODES, STORAGE_KEYS } from "../constants/conductor";
 import { Location } from "../types/conductor";
 import { busAPI } from "../utils/api";
+
+const INITIAL_GPS_OPTIONS: PositionOptions = {
+  enableHighAccuracy: true,
+  timeout: 60000,
+  maximumAge: 0,
+};
+
+const WATCH_GPS_OPTIONS: PositionOptions = {
+  enableHighAccuracy: true,
+  timeout: 30000,
+  maximumAge: 5000,
+};
 
 export function useGPSTracking(busId: string | null) {
   const [isGranted, setIsGranted] = useState(() => localStorage.getItem(STORAGE_KEYS.GPS_GRANTED) === "true");
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
-  const watchIdRef = useRef<number | null>(null);
 
+  const browserWatchIdRef = useRef<number | null>(null);
   const isAndroidNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
 
   const updateBusLocation = useCallback(
@@ -20,27 +32,23 @@ export function useGPSTracking(busId: string | null) {
 
       try {
         await busAPI.updateLocation(busId, location);
-        // console.log("Bus location updated:", location);
       } catch (error) {
-        // console.error("Error updating bus location:", error);
+        console.error("Error updating bus location:", error);
       }
     },
     [busId],
   );
 
-  const handlePositionUpdate = useCallback(
-    (position: GeolocationPosition) => {
-      const location: Location = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      };
+  const applyLocation = useCallback(
+    (lat: number, lng: number, accuracy?: number | null) => {
+      const location: Location = { lat, lng };
 
-      // console.log("GPS position update:", {
-      //   lat: position.coords.latitude,
-      //   lng: position.coords.longitude,
-      //   accuracy: position.coords.accuracy,
-      //   platform: Capacitor.getPlatform(),
-      // });
+      console.log("GPS position update:", {
+        lat,
+        lng,
+        accuracy,
+        platform: Capacitor.getPlatform(),
+      });
 
       setCurrentLocation(location);
       updateBusLocation(location);
@@ -48,10 +56,36 @@ export function useGPSTracking(busId: string | null) {
     [updateBusLocation],
   );
 
-  const handlePositionError = useCallback((error: GeolocationPositionError) => {
-    console.error("GPS Error:", error);
+  const handleBrowserPositionUpdate = useCallback(
+    (position: GeolocationPosition) => {
+      applyLocation(position.coords.latitude, position.coords.longitude, position.coords.accuracy);
+    },
+    [applyLocation],
+  );
 
-    switch (error.code) {
+  const handlePositionError = useCallback((error: any) => {
+    const code = error?.code;
+    const message = error?.message ?? "Unknown error";
+
+    console.error("GPS Error code:", code);
+    console.error("GPS Error message:", message);
+    console.error("GPS Error full:", error);
+
+    // Capacitor plugin timeout / plugin-specific errors
+    if (typeof code === "string") {
+      if (code === "OS-PLUG-GLOC-0010") {
+        toast.error(
+          "Location is taking longer than expected on this device. Try moving outdoors and wait a little longer.",
+        );
+        return;
+      }
+
+      toast.error(`GPS error: ${message}`);
+      return;
+    }
+
+    // Browser / WebView geolocation numeric errors
+    switch (code) {
       case GPS_ERROR_CODES.PERMISSION_DENIED:
         toast.error("GPS permission denied. Please enable location services.");
         setIsGranted(false);
@@ -61,12 +95,22 @@ export function useGPSTracking(busId: string | null) {
         toast.error("Location information unavailable.");
         break;
       case GPS_ERROR_CODES.TIMEOUT:
-        toast.error("GPS request timed out.");
+        toast.error("GPS request timed out. Try moving outdoors and wait a little longer.");
         break;
       default:
-        toast.error(`GPS error: ${error.message || "Unknown error"}`);
+        toast.error(`GPS error: ${message}`);
     }
   }, []);
+
+  const getCurrentPositionNative = useCallback(async () => {
+    const position = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 60000,
+      maximumAge: 0,
+    });
+
+    applyLocation(position.coords.latitude, position.coords.longitude, position.coords.accuracy);
+  }, [applyLocation]);
 
   const startTracking = useCallback(() => {
     if (!navigator.geolocation) {
@@ -74,21 +118,25 @@ export function useGPSTracking(busId: string | null) {
       return;
     }
 
-    if (watchIdRef.current !== null) {
+    if (browserWatchIdRef.current !== null) {
       return;
     }
 
-    const watchId = navigator.geolocation.watchPosition(handlePositionUpdate, handlePositionError, GPS_OPTIONS);
+    const watchId = navigator.geolocation.watchPosition(
+      handleBrowserPositionUpdate,
+      handlePositionError,
+      WATCH_GPS_OPTIONS,
+    );
 
-    watchIdRef.current = watchId;
-    // console.log("GPS tracking started with watch ID:", watchId);
-  }, [handlePositionUpdate, handlePositionError]);
+    browserWatchIdRef.current = watchId;
+    console.log("GPS tracking started with watch ID:", watchId);
+  }, [handleBrowserPositionUpdate, handlePositionError]);
 
   const stopTracking = useCallback(() => {
-    if (watchIdRef.current !== null) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-      // console.log("GPS tracking stopped");
+    if (browserWatchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(browserWatchIdRef.current);
+      browserWatchIdRef.current = null;
+      console.log("GPS tracking stopped");
     }
   }, []);
 
@@ -101,11 +149,17 @@ export function useGPSTracking(busId: string | null) {
           const permission = await Geolocation.checkPermissions();
           const granted = permission.location === "granted" || permission.coarseLocation === "granted";
 
-          // console.log("Checked Android GPS permissions:", permission);
+          console.log("Checked Android GPS permissions:", permission);
 
           setIsGranted(granted && gpsGranted);
 
           if (granted && gpsGranted && busId) {
+            try {
+              await getCurrentPositionNative();
+            } catch (error) {
+              handlePositionError(error);
+            }
+
             startTracking();
           }
 
@@ -115,6 +169,7 @@ export function useGPSTracking(busId: string | null) {
         }
       }
 
+      // Browser/web fallback
       setIsGranted(gpsGranted);
 
       if (gpsGranted && busId) {
@@ -127,7 +182,7 @@ export function useGPSTracking(busId: string | null) {
     return () => {
       stopTracking();
     };
-  }, [busId, startTracking, stopTracking, isAndroidNative]);
+  }, [busId, startTracking, stopTracking, isAndroidNative, getCurrentPositionNative, handlePositionError]);
 
   const requestPermission = useCallback(async () => {
     setIsRequesting(true);
@@ -137,7 +192,7 @@ export function useGPSTracking(busId: string | null) {
         const permission = await Geolocation.requestPermissions();
         const granted = permission.location === "granted" || permission.coarseLocation === "granted";
 
-        // console.log("Requested Android GPS permission:", permission);
+        console.log("Requested Android GPS permission:", permission);
 
         if (!granted) {
           toast.error("GPS permission denied. Please enable location services.");
@@ -146,8 +201,24 @@ export function useGPSTracking(busId: string | null) {
           setIsRequesting(false);
           return false;
         }
+
+        try {
+          await getCurrentPositionNative();
+          setIsGranted(true);
+          localStorage.setItem(STORAGE_KEYS.GPS_GRANTED, "true");
+
+          toast.success("GPS enabled successfully!");
+          startTracking();
+          setIsRequesting(false);
+          return true;
+        } catch (error) {
+          handlePositionError(error);
+          setIsRequesting(false);
+          return false;
+        }
       }
 
+      // Browser/web path
       if (!navigator.geolocation) {
         toast.error("Geolocation is not supported on this device");
         setIsRequesting(false);
@@ -157,20 +228,8 @@ export function useGPSTracking(busId: string | null) {
       return await new Promise<boolean>((resolve) => {
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            const location: Location = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            };
+            applyLocation(position.coords.latitude, position.coords.longitude, position.coords.accuracy);
 
-            // console.log("Initial GPS position:", {
-            //   lat: position.coords.latitude,
-            //   lng: position.coords.longitude,
-            //   accuracy: position.coords.accuracy,
-            //   platform: Capacitor.getPlatform(),
-            // });
-
-            setCurrentLocation(location);
-            updateBusLocation(location);
             setIsGranted(true);
             localStorage.setItem(STORAGE_KEYS.GPS_GRANTED, "true");
 
@@ -184,7 +243,7 @@ export function useGPSTracking(busId: string | null) {
             setIsRequesting(false);
             resolve(false);
           },
-          GPS_OPTIONS,
+          INITIAL_GPS_OPTIONS,
         );
       });
     } catch (error) {
@@ -194,7 +253,7 @@ export function useGPSTracking(busId: string | null) {
       setIsRequesting(false);
       return false;
     }
-  }, [handlePositionError, startTracking, updateBusLocation, isAndroidNative]);
+  }, [handlePositionError, startTracking, isAndroidNative, getCurrentPositionNative, applyLocation]);
 
   const skipPermission = useCallback(() => {
     localStorage.setItem(STORAGE_KEYS.GPS_GRANTED, "skipped");
