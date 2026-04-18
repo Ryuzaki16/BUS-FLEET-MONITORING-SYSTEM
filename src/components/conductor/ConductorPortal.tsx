@@ -23,6 +23,7 @@ import { useGPSTracking } from "../../hooks/useGPSTracking";
 import { BusPrinter } from "../../plugins/printer";
 import { BusStatus, LostItem } from "../../types/conductor";
 import { lostItemAPI } from "../../utils/api";
+import { getPublicBusTrackingUrl } from "../../utils/publicUrl";
 
 export function ConductorPortal() {
   const { busInfo, busNumberInput, isValidating, setBusNumberInput, validateBus, loadSavedBus, clearBus } =
@@ -86,8 +87,10 @@ export function ConductorPortal() {
   };
 
   const getTrackingQrText = () => {
-    if (typeof window === "undefined" || !busInfo?.id) return null;
-    return `${window.location.origin}/bus/track/${busInfo.id}`;
+    if (!busInfo?.id) return null;
+
+    const trackingUrl = getPublicBusTrackingUrl(busInfo.id);
+    return trackingUrl || null;
   };
 
   const formatReceipt = (ticketData: TicketFormData) => {
@@ -123,8 +126,6 @@ Payment: ${ticketData.paymentMethod.toUpperCase()}
 Thank you, have a safe trip
 
 Scan to view live location and rate your trip
-
-Scan Me!
     `.trim();
   };
 
