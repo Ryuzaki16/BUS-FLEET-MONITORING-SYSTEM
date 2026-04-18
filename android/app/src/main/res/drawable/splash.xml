@@ -4,8 +4,8 @@
     <item android:drawable="@android:color/white" />
 
     <item
-        android:width="260dp"
-        android:height="260dp"
+        android:width="300dp"
+        android:height="300dp"
         android:gravity="center">
         <bitmap
             android:src="@drawable/busfleet_logo"

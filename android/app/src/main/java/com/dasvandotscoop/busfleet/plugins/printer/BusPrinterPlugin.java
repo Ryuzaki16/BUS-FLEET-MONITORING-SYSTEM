@@ -341,6 +341,10 @@ public class BusPrinterPlugin extends Plugin {
 
                 if (qrImagePrinted) {
                     Log.d(TAG, "QR bitmap added successfully");
+
+                    tryAddLineFeed(printManagerClass, printManager, 1);
+                    addTextMethod.invoke(printManager, 1, 3, false, false, "Scan Me!");
+                    tryAddLineFeed(printManagerClass, printManager, 1);
                 } else {
                     Log.w(TAG, "QR bitmap printing not supported, skipping QR on receipt");
                 }
