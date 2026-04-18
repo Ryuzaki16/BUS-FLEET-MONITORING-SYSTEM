@@ -58,6 +58,6 @@ export default defineConfig({
     allowedHosts: ["ariella-nonrigid-malisa.ngrok-free.dev"],
     port: 3000,
     open: true,
-    host: false,
+    host: true,
   },
 });

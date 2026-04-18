@@ -1,8 +1,8 @@
-import { Package, X } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
-import { ITEM_CATEGORIES } from '../../constants/conductor';
-import { LostItem } from '../../types/conductor';
+import { Package, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
+import { ITEM_CATEGORIES } from "../../constants/conductor";
+import { LostItem } from "../../types/conductor";
 
 interface LostItemFormModalProps {
   isOpen: boolean;
@@ -13,10 +13,10 @@ interface LostItemFormModalProps {
 
 export function LostItemFormModal({ isOpen, isLoading, onClose, onReportItem }: LostItemFormModalProps) {
   const [item, setItem] = useState<LostItem>({
-    itemName: '',
-    description: '',
-    category: 'other',
-    location: '',
+    itemName: "",
+    description: "",
+    category: "other",
+    location: "",
   });
 
   const handleSubmit = async () => {
@@ -24,10 +24,10 @@ export function LostItemFormModal({ isOpen, isLoading, onClose, onReportItem }: 
     if (success) {
       // Reset form
       setItem({
-        itemName: '',
-        description: '',
-        category: 'other',
-        location: '',
+        itemName: "",
+        description: "",
+        category: "other",
+        location: "",
       });
       onClose();
     }
@@ -54,7 +54,7 @@ export function LostItemFormModal({ isOpen, isLoading, onClose, onReportItem }: 
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-gray-900">Report Lost Item</h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <button onClick={onClose} className="cursor-pointer text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -87,7 +87,7 @@ export function LostItemFormModal({ isOpen, isLoading, onClose, onReportItem }: 
                 <select
                   value={item.category}
                   onChange={(e) => setItem({ ...item, category: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
+                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none"
                 >
                   {ITEM_CATEGORIES.map((category) => (
                     <option key={category} value={category}>
@@ -112,7 +112,7 @@ export function LostItemFormModal({ isOpen, isLoading, onClose, onReportItem }: 
             <button
               onClick={handleSubmit}
               disabled={isLoading || !isFormValid}
-              className="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-medium hover:from-purple-600 hover:to-indigo-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="cursor-pointer w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-medium hover:from-purple-600 hover:to-indigo-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
