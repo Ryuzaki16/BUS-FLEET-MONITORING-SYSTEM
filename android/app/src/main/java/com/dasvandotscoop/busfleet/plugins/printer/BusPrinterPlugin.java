@@ -156,7 +156,7 @@ public class BusPrinterPlugin extends Plugin {
             trySetBlackLabel(printManagerClass, printManager, false);
             logs.add("Called setBlackLabel(false) if available");
 
-            Bitmap qrBitmap = generateQrBitmap(qrText, 365, 365);
+            Bitmap qrBitmap = generateQrBitmap(qrText, 375, 375);
             bitmapGenerated = true;
             logs.add("Generated QR bitmap successfully");
 
@@ -280,7 +280,7 @@ public class BusPrinterPlugin extends Plugin {
             addTextMethod.invoke(printManager, 1, 3, true, false, "QR TEST");
             tryAddLineFeed(printManagerClass, printManager, 1);
 
-            Bitmap qrBitmap = generateQrBitmap(qrText, 365, 365);
+            Bitmap qrBitmap = generateQrBitmap(qrText, 375, 375);
             boolean qrImagePrinted = tryPrintBitmap(printManagerClass, printManager, qrBitmap);
 
             if (!qrImagePrinted) {
@@ -336,13 +336,12 @@ public class BusPrinterPlugin extends Plugin {
                 Log.d(TAG, "QR requested, generating bitmap");
                 tryAddLineFeed(printManagerClass, printManager, 2);
 
-                Bitmap qrBitmap = generateQrBitmap(qrText, 365, 365);
+                Bitmap qrBitmap = generateQrBitmap(qrText, 375, 375);
                 boolean qrImagePrinted = tryPrintBitmap(printManagerClass, printManager, qrBitmap);
 
                 if (qrImagePrinted) {
                     Log.d(TAG, "QR bitmap added successfully");
                     tryAddLineFeed(printManagerClass, printManager, 1);
-                    addTextMethod.invoke(printManager, 1, 3, false, false, "Scan Me!");
                 } else {
                     Log.w(TAG, "QR bitmap printing not supported, skipping QR on receipt");
                 }
