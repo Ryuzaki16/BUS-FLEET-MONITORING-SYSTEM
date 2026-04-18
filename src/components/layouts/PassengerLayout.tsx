@@ -1,7 +1,7 @@
 import { Outlet, useNavigate } from 'react-router';
 import { Navbar } from '../Navbar';
 
-export type PassengerPage = 'passenger' | 'lostandfound';
+export type PassengerPage = 'passenger' | 'lostandfound' | 'qr_tracking' | 'feedback';
 
 export default function PassengerLayout() {
   const navigate = useNavigate();

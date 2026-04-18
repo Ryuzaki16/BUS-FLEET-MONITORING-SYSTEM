@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import type { Bus as BusType } from "../types";
 import { busAPI } from "../utils/api";
 import { BusQRCode } from "./BusQRCode";
+import { FeedbackView } from "./FeedbackView";
 
 export function FleetManagement() {
   const [buses, setBuses] = useState<BusType[]>([]);
@@ -34,6 +35,7 @@ export function FleetManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [busID, setBusID] = useState("");
   const navigate = useNavigate();
 
   const emptyBusForm = {
@@ -491,27 +493,23 @@ export function FleetManagement() {
 
                     <div className="pt-3 border-t border-gray-100 space-y-2 mt-auto">
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openBusDetails(bus)}
-                          className="cursor-pointer flex-1 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors text-sm"
-                        >
-                          View Details
-                        </button>
+                        <button type="button" onClick={() => openBusDetails(bus)}
+                          className="cursor-pointer flex-1 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors text-sm">
+                          View Details</button>
 
-                        <button
-                          type="button"
-                          onClick={() => openEditBusModal(bus)}
+                        <button type="button" onClick={() => openEditBusModal(bus)}
                           className="cursor-pointer flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
                           bg-blue-50 text-blue-600 hover:bg-blue-100
                           disabled:bg-gray-100 disabled:text-gray-400
-                          disabled:cursor-default disabled:hover:bg-gray-100"
-                        >
-                          Edit Bus
-                        </button>
+                          disabled:cursor-default disabled:hover:bg-gray-100">
+                          Edit Bus</button>
                       </div>
 
-                      <BusQRCode busId={bus.id} plateNumber={bus.plateNumber} qrCodeId={bus.qrCodeId} />
+                      <div className="flex gap-2">
+                        <BusQRCode busId={bus.id} plateNumber={bus.plateNumber} qrCodeId={bus.qrCodeId} />
+                        <FeedbackView busID={bus.id} setBusID={setBusID} />
+                      </div>
+
                     </div>
                   </div>
                 </motion.div>

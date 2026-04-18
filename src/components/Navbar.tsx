@@ -4,7 +4,7 @@ import { useLocation } from "react-router";
 
 interface NavbarProps {
   onNavigate: (page: any) => void;
-  userRole: "admin" | "conductor" | "passenger";
+  userRole: "admin" | "conductor" | "passenger" | "qr_tracking";
   logout?: () => void;
 }
 
@@ -24,6 +24,7 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
     if (path.includes("/conductor")) return "conductor";
     if (path.includes("/passenger")) return "passenger";
     if (path.includes("/tracking")) return "tracking";
+    if (path.includes("bus/track/:busId")) return "qr_tracking";
 
     return "tracking";
   };
@@ -40,11 +41,16 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
           { id: "lostandfound", label: "Lost & Found", icon: Package },
         ]
       : userRole === "conductor"
-        ? [{ id: "conductor", label: "My Dashboard", icon: Ticket }]
-        : [
-            { id: "passenger", label: "Track Buses", icon: Map },
-            { id: "lostandfound", label: "Lost & Found", icon: Package },
-          ];
+      ? [{ id: "conductor", label: "My Dashboard", icon: Ticket }]
+      : userRole === "qr_tracking"
+      ? [{ id: "qr_tracking", label: "QR Tracking", icon: Map },
+        { id: "lostandfound", label: "Lost & Found", icon: Package },
+        { id: "feedback", label: "Feedback", icon: FileText }
+      ]
+      : [
+          { id: "passenger", label: "Track Buses", icon: Map },
+          { id: "lostandfound", label: "Lost & Found", icon: Package },
+        ];
 
   return (
     <>
@@ -53,8 +59,8 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate("/")}>
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Bus className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-white border border-gray-700 rounded-xl flex items-center justify-center shadow-lg">
+                <img src="/logo-no-bg.png" alt="" />
               </div>
               <div className="hidden sm:block">
                 <h2 className="text-gray-900">Dasvan Dotscoop</h2>

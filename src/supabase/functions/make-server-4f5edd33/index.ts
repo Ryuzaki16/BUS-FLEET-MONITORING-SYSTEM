@@ -27,7 +27,7 @@ app.get("/make-server-4f5edd33/health", (c) => {
 // ==================== BUS ENDPOINTS ====================
 
 // Get all buses
-app.get("/make-server-4f5edd33/buses", async (c) => {
+app.get("/make-server-4f5edd33/buses", async (c: any) => {
   try {
     const buses = await kv.getByPrefix("bus:");
     return c.json({ success: true, data: buses });
@@ -38,7 +38,7 @@ app.get("/make-server-4f5edd33/buses", async (c) => {
 });
 
 // Get single bus
-app.get("/make-server-4f5edd33/buses/:id", async (c) => {
+app.get("/make-server-4f5edd33/buses/:id", async (c: any) => {
   try {
     const id = c.req.param("id");
     const bus = await kv.get(`bus:${id}`);
@@ -53,7 +53,7 @@ app.get("/make-server-4f5edd33/buses/:id", async (c) => {
 });
 
 // Create or update bus
-app.post("/make-server-4f5edd33/buses", async (c) => {
+app.post("/make-server-4f5edd33/buses", async (c: any) => {
   try {
     const body = await c.req.json();
     const { id, ...busData } = body;
@@ -71,7 +71,7 @@ app.post("/make-server-4f5edd33/buses", async (c) => {
 });
 
 // Delete bus
-app.delete("/make-server-4f5edd33/buses/:id", async (c) => {
+app.delete("/make-server-4f5edd33/buses/:id", async (c: any) => {
   try {
     const id = c.req.param("id");
     await kv.del(`bus:${id}`);
@@ -83,7 +83,7 @@ app.delete("/make-server-4f5edd33/buses/:id", async (c) => {
 });
 
 // Update bus location (GPS tracking)
-app.put("/make-server-4f5edd33/buses/:id/location", async (c) => {
+app.put("/make-server-4f5edd33/buses/:id/location", async (c: any) => {
   try {
     const id = c.req.param("id");
     const body = await c.req.json();
@@ -498,5 +498,50 @@ app.post("/make-server-4f5edd33/routes", async (c) => {
     return c.json({ success: false, error: String(error) }, 500);
   }
 });
+
+
+// ==================== FEEDBACK ENDPOINTS ====================
+
+app.post("/make-server-4f5edd33/feedback", async (c: any) => {
+  try {
+    const body = await c.req.json();
+    const { busId, name, driverRating, conductorRating, message } = body;
+
+    if (!busId) return c.json({ success: false, error: "busId is required" }, 400);
+    if (!driverRating || !conductorRating) return c.json({ success: false, error: "Ratings are required" }, 400);
+    if (driverRating < 1 || driverRating > 5 || conductorRating < 1 || conductorRating > 5) {
+      return c.json({ success: false, error: "Ratings must be between 1 and 5" }, 400);
+    }
+
+    const id = `${Date.now()}`;
+    const feedbackData = {
+      id,
+      busId,
+      name: name?.trim() || null,
+      driverRating,
+      conductorRating,
+      message: message?.trim() || null,
+      createdAt: new Date().toISOString()
+    };
+
+    await kv.set(`feedback:${busId}:${id}`, feedbackData);
+    return c.json({ success: true, data: feedbackData });
+  } catch (error) {
+    console.log("Error submitting feedback:", error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
+app.get("/make-server-4f5edd33/feedback/:busId", async (c: any) => {
+  try {
+    const busId = c.req.param("busId");
+    const feedback = await kv.getByPrefix(`feedback:${busId}:`);
+    return c.json({ success: true, data: feedback });
+  } catch (error) {
+    console.log("Error fetching feedback:", error);
+    return c.json({ success: false, error: String(error) }, 500);
+  }
+});
+
 
 Deno.serve(app.fetch);

@@ -19,6 +19,23 @@ const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
   return response.json();
 };
 
+// Feedback API
+export const feedbackAPI = {
+  submit: (data: {
+    busId: string;
+    name?: string;
+    driverRating: number;
+    conductorRating: number;
+    message?: string;
+  }) =>
+    fetchAPI('/feedback', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getByBus: (busId: string) => fetchAPI(`/feedback/${busId}`),
+};
+
 // Bus API
 export const busAPI = {
   getAll: () => fetchAPI('/buses'),
