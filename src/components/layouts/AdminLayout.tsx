@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router'
 import { AdminLogin } from '../AdminLogin'
 import { DatabaseSeeder } from '../DatabaseSeeder'
 import { Navbar } from '../Navbar'
+import { AdminFirstPage } from '../AdminFirstPage'
 
 export type AdminPage = 'tracking' | 'fleet' | 'analytics' | 'reports' | 'lostandfound'
 
@@ -11,6 +12,7 @@ export default function AdminLayout() {
     return localStorage.getItem('adminAuthenticated') === 'true'
   })
   const navigate = useNavigate()
+  const [redirectToLogin, setRedirectToLogin] = useState(false)
 
   const handleLoginSuccess = () => {
     localStorage.setItem('adminAuthenticated', 'true')
@@ -36,6 +38,13 @@ export default function AdminLayout() {
   }
 
   if (!isAuthenticated) {
+    if (redirectToLogin) {
+      return <AdminLogin onLoginSuccess={handleLoginSuccess} onBack={() => setRedirectToLogin(false)} />;
+    }
+    return <AdminFirstPage setRedirectToLogin={setRedirectToLogin} />;
+  }
+
+  if (redirectToLogin)  {
     return <AdminLogin onLoginSuccess={handleLoginSuccess} onBack={handleBack} />
   }
 
