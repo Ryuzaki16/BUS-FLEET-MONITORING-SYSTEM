@@ -44,10 +44,6 @@ export default function AdminLayout() {
     return <AdminFirstPage setRedirectToLogin={setRedirectToLogin} />;
   }
 
-  if (redirectToLogin)  {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} onBack={handleBack} />
-  }
-
   return (
     <>
       <Navbar onNavigate={handleNavigate} userRole="admin" logout={handleLogout} />
