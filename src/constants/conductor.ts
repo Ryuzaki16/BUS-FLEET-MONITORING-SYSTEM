@@ -8,8 +8,48 @@ export const COMMON_ROUTES = [
 
 export const ITEM_CATEGORIES = ['electronics', 'bag', 'clothing', 'documents', 'accessories', 'other'] as const;
 
-export const BOARDING_POINTS = ['Dasmariñas', 'Zapote', 'Sucat'] as const;
-export const DESTINATIONS = ['Alabang', 'Sucat', 'Zapote'] as const;
+export const BOARDING_POINTS = [
+  'Robinsons Dasma',
+  'Via Verde Dasma',
+  'Vistamall Dasma',
+  'Waltermart Dasma',
+  'Meralco Dasma',
+  'Central Mall Dasma',
+  'District Imus',
+  'Daang Hari',
+  'Vermosa',
+  'Molino',
+  'Villar City',
+  'Evia Lifestyle Center',
+  'Katarungan Village',
+  'Landers Alabang',
+  'Honda Alabang',
+  'Alabang Town Center',
+  'Northgate',
+  'Starmall Alabang',
+] as const;
+export const DESTINATIONS = [
+  'Robinsons Dasma',
+  'Robinsons Dasma',
+  'Via Verde Dasma',
+  'Vistamall Dasma',
+  'Waltermart Dasma',
+  'Meralco Dasma',
+  'Central Mall Dasma',
+  'District Imus',
+  'Daang Hari',
+  'Vermosa',
+  'Molino',
+  'Villar City',
+  'Evia Lifestyle Center',
+  'Katarungan Village',
+  'Landers Alabang',
+  'Honda Alabang',
+  'Alabang Town Center',
+  'Northgate',
+  'Starmall Alabang',
+  'Robinsons Dasma'
+] as const;
 
 export const GPS_OPTIONS = {
   enableHighAccuracy: true,

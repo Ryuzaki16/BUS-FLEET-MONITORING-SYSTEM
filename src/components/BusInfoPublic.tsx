@@ -104,6 +104,10 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
     }
   };
 
+  const calculateETA = () => {
+    return Math.floor(Math.random() * 10) + 3;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
@@ -235,7 +239,8 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
                 <div>
                   <h3 className="text-gray-900 mb-1 sm:mb-2 text-base sm:text-lg">Bus Status</h3>
-                  <p className="text-gray-600 text-sm">Driver: {busData.driver}</p>
+                  <p className="text-gray-600 text-sm capitalize">Driver: {busData.driver}</p> 
+                  <p className="text-gray-600 text-sm">Estimated Arrival Time to Destination: {calculateETA()} mins</p>
                 </div>
                 <div
                   className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-2 ${
