@@ -43,12 +43,12 @@ export function useGPSTracking(busId: string | null) {
     (lat: number, lng: number, accuracy?: number | null) => {
       const location: Location = { lat, lng };
 
-      console.log("GPS position update:", {
-        lat,
-        lng,
-        accuracy,
-        platform: Capacitor.getPlatform(),
-      });
+      // console.log("GPS position update:", {
+      //   lat,
+      //   lng,
+      //   accuracy,
+      //   platform: Capacitor.getPlatform(),
+      // });
 
       setCurrentLocation(location);
       updateBusLocation(location);
@@ -129,14 +129,14 @@ export function useGPSTracking(busId: string | null) {
     );
 
     browserWatchIdRef.current = watchId;
-    console.log("GPS tracking started with watch ID:", watchId);
+    // console.log("GPS tracking started with watch ID:", watchId);
   }, [handleBrowserPositionUpdate, handlePositionError]);
 
   const stopTracking = useCallback(() => {
     if (browserWatchIdRef.current !== null) {
       navigator.geolocation.clearWatch(browserWatchIdRef.current);
       browserWatchIdRef.current = null;
-      console.log("GPS tracking stopped");
+      // console.log("GPS tracking stopped");
     }
   }, []);
 
@@ -149,7 +149,7 @@ export function useGPSTracking(busId: string | null) {
           const permission = await Geolocation.checkPermissions();
           const granted = permission.location === "granted" || permission.coarseLocation === "granted";
 
-          console.log("Checked Android GPS permissions:", permission);
+          // console.log("Checked Android GPS permissions:", permission);
 
           setIsGranted(granted && gpsGranted);
 
@@ -192,7 +192,7 @@ export function useGPSTracking(busId: string | null) {
         const permission = await Geolocation.requestPermissions();
         const granted = permission.location === "granted" || permission.coarseLocation === "granted";
 
-        console.log("Requested Android GPS permission:", permission);
+        // console.log("Requested Android GPS permission:", permission);
 
         if (!granted) {
           toast.error("GPS permission denied. Please enable location services.");

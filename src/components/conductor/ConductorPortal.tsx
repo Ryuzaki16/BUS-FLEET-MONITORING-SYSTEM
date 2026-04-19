@@ -138,7 +138,7 @@ Scan Me!
 
     try {
       const result = await BusPrinter.testQrPrint({ qrText });
-      console.log("QR print test result:", result);
+      // console.log("QR print test result:", result);
       toast.success(result.success ? "QR test print sent" : "QR test print failed");
     } catch (error) {
       console.error("QR print test failed:", error);
@@ -156,7 +156,6 @@ Scan Me!
 
     try {
       const result = await BusPrinter.testQrCapability({ qrText });
-      console.log("QR capability result:", result);
       toast.success(JSON.stringify(result));
     } catch (error) {
       console.error("QR capability test failed:", error);
