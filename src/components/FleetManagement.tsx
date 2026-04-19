@@ -28,6 +28,7 @@ export function FleetManagement() {
   const [buses, setBuses] = useState<BusType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "idle" | "maintenance">("all");
+  const [busStatus, setBusStatus] = useState<'on-time' | 'delayed' | 'emergency' | 'stopped'>('on-time');
   const [showBusFormModal, setShowBusFormModal] = useState(false);
   const [editingBus, setEditingBus] = useState<BusType | null>(null);
   const [selectedBusDetails, setSelectedBusDetails] = useState<BusType | null>(null);
@@ -114,6 +115,29 @@ export function FleetManagement() {
 
       setBuses(formattedBuses);
       setIsLoading(false);
+
+      const activeBuses = formattedBuses.filter((bus: any) => bus.status === 'active');
+
+      const alertResults = await Promise.allSettled(
+        activeBuses.map((bus: any) => busAPI.getAlert(bus.id))
+      );
+
+      const busesWithAlerts = formattedBuses.map((bus: any) => {
+      if (bus.status !== 'active') return bus;
+
+      const activeIndex = activeBuses.findIndex((b: any) => b.id === bus.id);
+      const result = alertResults[activeIndex];
+
+      return {
+          ...bus,
+          alertStatus:
+            result.status === 'fulfilled'
+              ? result.value.data?.status ?? 'on-time'
+              : 'on-time',
+        };
+      }); 
+
+      setBuses(busesWithAlerts);  
     } catch (error) {
       console.error("Error loading buses:", error);
       if (buses.length > 0) {
@@ -483,6 +507,10 @@ export function FleetManagement() {
                         />
                         {bus.status === "active" ? "GPS Active" : "GPS Inactive"}
                       </div>
+
+                      {bus.status === 'active' && (
+                        <span className="text-red-500">Current bus status: {bus.alertStatus}</span>
+                      )}
 
                       <div className="flex items-center gap-2 text-sm">
                         <Clock className="w-4 h-4 text-gray-400" />
