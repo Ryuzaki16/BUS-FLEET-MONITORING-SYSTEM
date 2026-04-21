@@ -33,6 +33,14 @@ public class BusPrinterPlugin extends Plugin {
     private static final int FINAL_FEED_LINES = 4;
     private static final int QR_TEST_FINAL_FEED_LINES = 2;
 
+    // Keep this as 1 first since that is what your existing code already uses.
+    // If it still does not center on the actual printer, test 0 or 2.
+    private static final int CENTER_ALIGN = 1;
+    private static final int TEXT_SIZE = 3;
+
+    private static final String QR_INFO_TEXT = "SCAN TO VIEW LIVE LOCATION AND RATE YOUR TRIP";
+    private static final String SCAN_ME_TEXT = "SCAN ME!";
+
     @PluginMethod
     public void testQrCapability(PluginCall call) {
         String qrText = clean(call.getString("qrText"));
@@ -289,7 +297,7 @@ public class BusPrinterPlugin extends Plugin {
 
             Method addTextMethod = resolveAddTextMethod(printManagerClass);
 
-            addTextMethod.invoke(printManager, 1, 3, true, false, "QR TEST");
+            addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, true, false, "QR TEST");
             tryAddLineFeed(printManagerClass, printManager, 1);
 
             Bitmap qrBitmap = generateQrBitmap(qrText, QR_SIZE, QR_SIZE);
@@ -300,8 +308,7 @@ public class BusPrinterPlugin extends Plugin {
                 return false;
             }
 
-            tryAddLineFeed(printManagerClass, printManager, 1);
-            addTextMethod.invoke(printManager, 1, 3, false, false, "Scan Me!");
+            printScanMeLabel(printManagerClass, printManager, addTextMethod);
             tryAddLineFeed(printManagerClass, printManager, QR_TEST_FINAL_FEED_LINES);
 
             invokeNoArg(printManagerClass, printManager, "start");
@@ -330,9 +337,11 @@ public class BusPrinterPlugin extends Plugin {
             trySetBlackLabel(printManagerClass, printManager, false);
 
             Method addTextMethod = resolveAddTextMethod(printManagerClass);
-            addTextMethod.invoke(printManager, 1, 3, false, false, text);
+            addTextMethod.invoke(printManager, 1, TEXT_SIZE, false, false, text);
 
             if (!qrText.isEmpty()) {
+                printQrInfoLabel(printManagerClass, printManager, addTextMethod);
+
                 Log.d(TAG, "QR requested, generating bitmap");
                 tryAddLineFeed(printManagerClass, printManager, 1);
 
@@ -341,10 +350,7 @@ public class BusPrinterPlugin extends Plugin {
 
                 if (qrImagePrinted) {
                     Log.d(TAG, "QR bitmap added successfully");
-
-                    tryAddLineFeed(printManagerClass, printManager, 1);
-                    addTextMethod.invoke(printManager, 1, 3, false, false, "Scan Me!");
-                    tryAddLineFeed(printManagerClass, printManager, 1);
+                    printScanMeLabel(printManagerClass, printManager, addTextMethod);
                 } else {
                     Log.w(TAG, "QR bitmap printing not supported, skipping QR on receipt");
                 }
@@ -367,6 +373,20 @@ public class BusPrinterPlugin extends Plugin {
             Log.w(TAG, "Direct print failed", t);
             return false;
         }
+    }
+
+    private void printQrInfoLabel(Class<?> printManagerClass, Object printManager, Method addTextMethod)
+            throws Exception {
+        tryAddLineFeed(printManagerClass, printManager, 1);
+        addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, true, false, QR_INFO_TEXT);
+        tryAddLineFeed(printManagerClass, printManager, 1);
+    }
+
+    private void printScanMeLabel(Class<?> printManagerClass, Object printManager, Method addTextMethod)
+            throws Exception {
+        tryAddLineFeed(printManagerClass, printManager, 1);
+        addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, true, false, SCAN_ME_TEXT);
+        tryAddLineFeed(printManagerClass, printManager, 1);
     }
 
     private Object resolvePrintManager(Class<?> printManagerClass) throws Exception {

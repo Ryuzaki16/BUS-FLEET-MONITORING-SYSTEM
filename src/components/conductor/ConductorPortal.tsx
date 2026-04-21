@@ -124,8 +124,6 @@ Fare: PHP ${Number(ticketData.fare).toFixed(2)}
 Payment: ${ticketData.paymentMethod.toUpperCase()}
 ------------------------------------------------------
 Thank you, have a safe trip
-
-Scan to view live location and rate your trip
     `.trim();
   };
 
