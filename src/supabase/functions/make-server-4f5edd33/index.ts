@@ -326,14 +326,14 @@ app.post("/make-server-4f5edd33/trips/:tripId/passengers", async (c) => {
     // Update trip stats
     const trip = await kv.get(`trip:${tripId}`);
     if (trip) {
+      const count = passengerData.passengerCount ?? 1; // 👈 read from body
       const updatedTrip = {
         ...trip,
-        passengersBoarded: (trip.passengersBoarded || 0) + 1,
-        totalFare: (trip.totalFare || 0) + (passengerData.fare || 0),
+        passengersBoarded: (trip.passengersBoarded || 0) + count,           // 👈 was + 1
+        totalFare: (trip.totalFare || 0) + (passengerData.fare || 0) * count, // 👈 multiply by count
       };
       await kv.set(`trip:${tripId}`, updatedTrip);
-      
-      // Update bus passenger count
+
       if (trip.busId) {
         const bus = await kv.get(`bus:${trip.busId}`);
         if (bus) {

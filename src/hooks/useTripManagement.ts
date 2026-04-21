@@ -29,6 +29,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
         setPassengers(
           passengersResponse.data.map((p: any) => ({
             ...p,
+            passengerCount: p.passengerCount ?? 1,
             timestamp: new Date(p.timestamp),
           })),
         );
@@ -111,13 +112,16 @@ export function useTripManagement(busInfo: BusInfo | null) {
           id: passengerId,
           ...passenger,
         };
-
+        
         await passengerAPI.add(currentTripId, newPassenger);
 
-        // ✅ Functional update (no stale state)
         setPassengers((prev) => [...prev, { ...newPassenger, timestamp: new Date() }]);
 
-        toast.success("Ticket issued successfully!");
+        toast.success(
+          passenger.passengerCount > 1
+            ? `${passenger.passengerCount} passengers boarded successfully!`
+            : "Ticket issued successfully!"
+        );
         return true;
       } catch (error) {
         console.error("Error issuing ticket:", error);
@@ -155,7 +159,11 @@ export function useTripManagement(busInfo: BusInfo | null) {
   );
 
   const getTotalRevenue = useCallback(() => {
-    return passengers.reduce((sum, p) => sum + p.fare, 0);
+    return passengers.reduce((sum, p) => sum + p.fare * (p.passengerCount ?? 1), 0);
+  }, [passengers]);
+
+  const getTotalPassengers = useCallback(() => {
+    return passengers.reduce((sum, p) => sum + (p.passengerCount ?? 1), 0);
   }, [passengers]);
 
   return {
@@ -169,5 +177,6 @@ export function useTripManagement(busInfo: BusInfo | null) {
     addPassenger,
     removePassenger,
     getTotalRevenue,
+    getTotalPassengers,
   };
 }

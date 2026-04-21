@@ -47,6 +47,7 @@ export function ConductorPortal() {
     addPassenger,
     removePassenger,
     getTotalRevenue,
+    getTotalPassengers
   } = useTripManagement(busInfo);
 
   const { currentStatus, updateStatus } = useBusStatus(busInfo);
@@ -122,6 +123,7 @@ To: ${ticketData.destination}
 
 Fare: PHP ${Number(ticketData.fare).toFixed(2)}
 Payment: ${ticketData.paymentMethod.toUpperCase()}
+Passenger Type: ${ticketData.type.toUpperCase()}
 ------------------------------------------------------
 Thank you, have a safe trip
     `.trim();
@@ -309,7 +311,7 @@ Thank you, have a safe trip
           <TripCard
             busInfo={busInfo}
             isActive={tripActive}
-            passengerCount={passengers.length}
+            passengerCount={getTotalPassengers()}
             isLoading={isLoading}
             gpsGranted={gpsGranted}
             currentLocation={currentLocation}
@@ -321,7 +323,7 @@ Thank you, have a safe trip
           {tripActive ? (
             <>
               <TripActions
-                passengerCount={passengers.length}
+                passengerCount={getTotalPassengers()}
                 totalRevenue={totalRevenue}
                 onIssueTicket={() => setShowTicketForm(true)}
                 onUpdateStatus={() => setShowStatusModal(true)}

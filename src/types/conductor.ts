@@ -6,6 +6,7 @@ export interface Passenger {
   fare: number;
   timestamp: Date | string;
   paymentMethod: 'cash' | 'digital';
+  passengerCount: number;
 }
 
 export interface BusInfo {
