@@ -46,6 +46,7 @@ export function ConductorPortal() {
     addPassenger,
     removePassenger,
     getTotalRevenue,
+    getTotalPassengers
   } = useTripManagement(busInfo);
 
   const { currentStatus, updateStatus } = useBusStatus(busInfo);
@@ -346,7 +347,7 @@ Scan Me!
           <TripCard
             busInfo={busInfo}
             isActive={tripActive}
-            passengerCount={passengers.length}
+            passengerCount={getTotalPassengers()}
             isLoading={isLoading}
             gpsGranted={gpsGranted}
             currentLocation={currentLocation}
@@ -358,7 +359,7 @@ Scan Me!
           {tripActive ? (
             <>
               <TripActions
-                passengerCount={passengers.length}
+                passengerCount={getTotalPassengers()}
                 totalRevenue={totalRevenue}
                 onIssueTicket={() => setShowTicketForm(true)}
                 onUpdateStatus={() => setShowStatusModal(true)}
