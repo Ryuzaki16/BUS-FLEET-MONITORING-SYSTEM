@@ -119,6 +119,7 @@ To: ${ticketData.destination}
 
 Fare: PHP ${Number(ticketData.fare).toFixed(2)}
 Payment: ${ticketData.paymentMethod.toUpperCase()}
+Passenger Type: ${ticketData.type.toUpperCase()}
 ------------------------------------------------------
 Thank you, have a safe trip
 

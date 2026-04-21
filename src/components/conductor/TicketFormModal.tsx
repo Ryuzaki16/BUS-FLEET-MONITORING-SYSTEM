@@ -18,6 +18,7 @@ export interface TicketFormData {
   destination: string;
   fare: number;
   paymentMethod: "cash" | "digital";
+  type: string;
 }
 
 export function TicketFormModal({
@@ -31,9 +32,18 @@ export function TicketFormModal({
   const [boardingPoint, setBoardingPoint] = useState<string>(BOARDING_POINTS[0]);
   const [destination, setDestination] = useState<string>(DESTINATIONS[0]);
   const [fare, setFare] = useState(45);
+  const [passengerType, setPassengerType] = useState<string>("regular");
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "digital">("cash");
 
+  const [boardingPointIsOther, setBoardingPointIsOther] = useState(false);
+  const [destinationIsOther, setDestinationIsOther] = useState(false);
+  const [boardingPointCustom, setBoardingPointCustom] = useState("");
+  const [destinationCustom, setDestinationCustom] = useState("");
+
   const isBusy = isIssuingTicket || isPrintingReceipt;
+
+  const effectiveBoardingPoint = boardingPointIsOther ? boardingPointCustom : boardingPoint;
+  const effectiveDestination = destinationIsOther ? destinationCustom : destination;
 
   const filteredDestinations = useMemo(() => {
     return DESTINATIONS.filter((dest) => dest !== boardingPoint);
@@ -47,15 +57,30 @@ export function TicketFormModal({
   const getDefaultDestination = () => DESTINATIONS[0];
 
   const handleBoardingPointChange = (newBoardingPoint: string) => {
+    if (newBoardingPoint === "__other__") {
+      setBoardingPointIsOther(true);
+      setBoardingPointCustom("");
+      setFare(45);
+      return;
+    }
+
+    setBoardingPointIsOther(false);
     setBoardingPoint(newBoardingPoint);
 
     const nextDestination = destination === newBoardingPoint ? getDefaultDestination() : destination;
-
     setDestination(nextDestination);
     setFare(calculateFare(newBoardingPoint, nextDestination));
   };
 
   const handleDestinationChange = (newDestination: string) => {
+    if (newDestination === "__other__") {
+      setDestinationIsOther(true);
+      setDestinationCustom("");
+      setFare(45);
+      return;
+    }
+
+    setDestinationIsOther(false);
     setDestination(newDestination);
     setFare(calculateFare(boardingPoint, newDestination));
   };
@@ -68,6 +93,10 @@ export function TicketFormModal({
     setDestination(defaultDestination);
     setFare(calculateFare(defaultBoardingPoint, defaultDestination));
     setPaymentMethod("cash");
+    setBoardingPointIsOther(false);
+    setDestinationIsOther(false);
+    setBoardingPointCustom("");
+    setDestinationCustom("");
   };
 
   const handleSubmit = async () => {
@@ -75,10 +104,11 @@ export function TicketFormModal({
 
     const ticketData: TicketFormData = {
       ticketNumber: `${Math.floor(100000 + Math.random() * 900000)}`,
-      boardingPoint,
-      destination,
+      boardingPoint: effectiveBoardingPoint,
+      destination: effectiveDestination,
       fare,
       paymentMethod,
+      type: passengerType,
     };
 
     const success = await onIssueTicket(ticketData);
@@ -118,10 +148,11 @@ export function TicketFormModal({
             </div>
 
             <div className="space-y-4 mb-6">
+              {/* Boarding Point */}
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2">Boarding Point</label>
                 <select
-                  value={boardingPoint}
+                  value={boardingPointIsOther ? "__other__" : boardingPoint}
                   onChange={(e) => handleBoardingPointChange(e.target.value)}
                   disabled={isBusy}
                   className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
@@ -131,13 +162,35 @@ export function TicketFormModal({
                       {point}
                     </option>
                   ))}
+                  <option value="__other__">Other (type manually)</option>
                 </select>
+                <AnimatePresence>
+                  {boardingPointIsOther && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                      animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <input
+                        type="text"
+                        value={boardingPointCustom}
+                        onChange={(e) => setBoardingPointCustom(e.target.value)}
+                        placeholder="Enter boarding point..."
+                        disabled={isBusy}
+                        autoFocus
+                        className="w-full px-4 py-3 border-2 border-indigo-300 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed placeholder:text-gray-400"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
+              {/* Destination */}
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2">Destination</label>
                 <select
-                  value={destination}
+                  value={destinationIsOther ? "__other__" : destination}
                   onChange={(e) => handleDestinationChange(e.target.value)}
                   disabled={isBusy}
                   className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
@@ -147,7 +200,28 @@ export function TicketFormModal({
                       {dest}
                     </option>
                   ))}
+                  <option value="__other__">Other (type manually)</option>
                 </select>
+                <AnimatePresence>
+                  {destinationIsOther && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                      animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <input
+                        type="text"
+                        value={destinationCustom}
+                        onChange={(e) => setDestinationCustom(e.target.value)}
+                        placeholder="Enter destination..."
+                        disabled={isBusy}
+                        autoFocus
+                        className="w-full px-4 py-3 border-2 border-indigo-300 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed placeholder:text-gray-400"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div>
@@ -174,6 +248,19 @@ export function TicketFormModal({
                 >
                   <option value="cash">Cash</option>
                   <option value="digital">Digital</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 text-sm font-medium mb-2">Passenger Type</label>
+                <select value={passengerType}
+                  onChange={(e) => setPassengerType(e.target.value)}
+                  disabled={isBusy}
+                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed">
+                  <option value="regular">Regular</option>
+                  <option value="student">Student</option>
+                  <option value="PWED">PWD</option>
+                  <option value="senior">Senior Citizen</option>
                 </select>
               </div>
             </div>
