@@ -7,6 +7,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
   const [isActive, setIsActive] = useState(false);
   const [currentTripId, setCurrentTripId] = useState<string | null>(null);
   const [passengers, setPassengers] = useState<Passenger[]>([]);
+  const [trip, setTrip] = useState<any>(null);
 
   // 🔥 Better loading management (handles concurrency)
   const [loadingCount, setLoadingCount] = useState(0);
@@ -23,6 +24,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
       if (activeTrip) {
         setIsActive(true);
         setCurrentTripId(activeTrip.id);
+        setTrip(activeTrip);
 
         const passengersResponse = await passengerAPI.getByTrip(activeTrip.id);
 
@@ -65,6 +67,12 @@ export function useTripManagement(busInfo: BusInfo | null) {
       setCurrentTripId(tripId);
       setPassengers([]);
 
+      setTrip({
+        id: tripId,
+        passengersBoarded: 0,
+        totalFare: 0,
+      });
+
       toast.success("Trip started successfully!");
       return true;
     } catch (error) {
@@ -86,6 +94,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
       setIsActive(false);
       setCurrentTripId(null);
       setPassengers([]);
+      setTrip(null);
 
       toast.success("Trip ended successfully!");
       return true;
@@ -117,10 +126,23 @@ export function useTripManagement(busInfo: BusInfo | null) {
 
         setPassengers((prev) => [...prev, { ...newPassenger, timestamp: new Date() }]);
 
+        setTrip((prev: any) => {
+          if (!prev) return prev;
+
+          const count = Number(passenger.passengerCount) || 1;
+          const fare = Number(passenger.fare) || 0;
+
+          return {
+            ...prev,
+            passengersBoarded: (prev.passengersBoarded || 0) + count,
+            totalFare: (prev.totalFare || 0) + fare * count,
+          };
+        });
+
         toast.success(
           passenger.passengerCount > 1
             ? `${passenger.passengerCount} passengers boarded successfully!`
-            : "Ticket issued successfully!"
+            : "Ticket issued successfully!",
         );
         return true;
       } catch (error) {
@@ -143,7 +165,22 @@ export function useTripManagement(busInfo: BusInfo | null) {
         await passengerAPI.remove(currentTripId, passengerId);
 
         // ✅ Functional update
-        setPassengers((prev) => prev.filter((p) => p.id !== passengerId));
+        setPassengers((prev) => {
+          const removed = prev.find((p) => p.id === passengerId);
+
+          setTrip((tripPrev: any) => {
+            if (!tripPrev) return tripPrev;
+
+            const count = removed?.passengerCount ?? 1;
+
+            return {
+              ...tripPrev,
+              passengersBoarded: Math.max(0, (tripPrev.passengersBoarded || 0) - count),
+            };
+          });
+
+          return prev.filter((p) => p.id !== passengerId);
+        });
 
         toast.success("Passenger removed successfully!");
         return true;
@@ -159,8 +196,9 @@ export function useTripManagement(busInfo: BusInfo | null) {
   );
 
   const getTotalRevenue = useCallback(() => {
-    return passengers.reduce((sum, p) => sum + p.fare * (p.passengerCount ?? 1), 0);
-  }, [passengers]);
+    // return passengers.reduce((sum, p) => sum + p.fare * (p.passengerCount ?? 1), 0);
+    return Number(trip?.totalFare) || 0;
+  }, [trip]);
 
   const getTotalPassengers = useCallback(() => {
     return passengers.reduce((sum, p) => sum + (p.passengerCount ?? 1), 0);
