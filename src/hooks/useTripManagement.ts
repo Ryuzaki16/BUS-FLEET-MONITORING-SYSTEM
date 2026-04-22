@@ -130,12 +130,12 @@ export function useTripManagement(busInfo: BusInfo | null) {
           if (!prev) return prev;
 
           const count = Number(passenger.passengerCount) || 1;
-          const fare = Number(passenger.fare) || 0;
+          const fare = Number(passenger.fare) || 0; 
 
           return {
             ...prev,
             passengersBoarded: (prev.passengersBoarded || 0) + count,
-            totalFare: (prev.totalFare || 0) + fare * count,
+            totalFare: (prev.totalFare || 0) + fare
           };
         });
 

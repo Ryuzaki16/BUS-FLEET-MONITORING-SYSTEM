@@ -32,6 +32,22 @@ export function TripCard({
       className="bg-gradient-to-r from-indigo-600 to-blue-600 rounded-2xl p-4 sm:p-6 md:p-8 mb-4 md:mb-6 shadow-xl"
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 md:gap-6">
+        <button
+          onClick={isActive ? onEndTrip : onStartTrip}
+          disabled={isLoading}
+          className={`cursor-pointer px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 sm:gap-3 text-base sm:text-lg w-full sm:w-auto disabled:opacity-50 ${
+            isActive ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg'
+              : 'bg-white text-indigo-600 hover:bg-indigo-50 shadow-lg'}`}>
+          {isLoading ? (
+            <><Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+              <span>{isActive ? 'Ending Trip...' : 'Starting Trip...'}</span></>
+          ) : isActive ? (
+            <><Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span>End Trip</span></>
+          ) : (
+            <><MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span>Start Trip</span></>
+          )}</button>
         <div className="flex items-center gap-3 sm:gap-4 md:gap-6 w-full sm:w-auto">
           <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center flex-shrink-0">
             <Bus className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white" />
@@ -71,32 +87,6 @@ export function TripCard({
           </div>
         </div>
 
-        <button
-          onClick={isActive ? onEndTrip : onStartTrip}
-          disabled={isLoading}
-          className={`cursor-pointer px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 sm:gap-3 text-base sm:text-lg w-full sm:w-auto disabled:opacity-50 ${
-            isActive
-              ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg'
-              : 'bg-white text-indigo-600 hover:bg-indigo-50 shadow-lg'
-          }`}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
-              <span>{isActive ? 'Ending Trip...' : 'Starting Trip...'}</span>
-            </>
-          ) : isActive ? (
-            <>
-              <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span>End Trip</span>
-            </>
-          ) : (
-            <>
-              <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span>Start Trip</span>
-            </>
-          )}
-        </button>
       </div>
     </motion.div>
   );

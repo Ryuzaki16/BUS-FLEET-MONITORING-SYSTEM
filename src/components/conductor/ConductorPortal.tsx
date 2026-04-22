@@ -152,6 +152,7 @@ Thank you, have a safe trip
       setLastReceiptQrText(qrText);
 
       toast.success("Ticket issued successfully");
+      getTotalRevenue();
 
       setIsPrintingReceipt(true);
       try {
@@ -285,8 +286,6 @@ Thank you, have a safe trip
     );
   }
 
-  const totalRevenue = getTotalRevenue();
-
   return (
     <div className="min-h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="mx-auto w-full max-w-7xl px-2.5 py-2.5 sm:px-4 sm:py-4 md:px-6 md:py-6 lg:px-8">
@@ -330,7 +329,7 @@ Thank you, have a safe trip
             <>
               <TripActions
                 passengerCount={getTotalPassengers()}
-                totalRevenue={totalRevenue}
+                totalRevenue={getTotalRevenue()}
                 onIssueTicket={() => setShowTicketForm(true)}
                 onUpdateStatus={() => setShowStatusModal(true)}
                 onReportLostItem={() => setShowLostItemForm(true)}

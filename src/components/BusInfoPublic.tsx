@@ -56,12 +56,12 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
       // Fetch active trip for this bus
       const tripsResponse = await tripAPI.getOngoing();
       const activeTrip = tripsResponse.data.find((trip: any) => trip.busId === busId);
-
+      
       let passengerCount = 0;
       if (activeTrip) {
         // Fetch passengers for this trip
-        const passengersResponse = await passengerAPI.getByTrip(activeTrip.id);
-        passengerCount = passengersResponse.data.length;
+        // const passengersResponse = await passengerAPI.getByTrip(activeTrip.id);
+        passengerCount = activeTrip?.passengersBoarded;
       }
 
       // Check for bus alerts
