@@ -23,6 +23,7 @@ import { useGPSTracking } from "../../hooks/useGPSTracking";
 import { BusPrinter } from "../../plugins/printer";
 import { BusStatus, LostItem } from "../../types/conductor";
 import { lostItemAPI } from "../../utils/api";
+import { getPublicBusTrackingUrl } from "../../utils/publicUrl";
 
 export function ConductorPortal() {
   const { busInfo, busNumberInput, isValidating, setBusNumberInput, validateBus, loadSavedBus, clearBus } =
@@ -87,8 +88,10 @@ export function ConductorPortal() {
   };
 
   const getTrackingQrText = () => {
-    if (typeof window === "undefined" || !busInfo?.id) return null;
-    return `${window.location.origin}/bus/track/${busInfo.id}`;
+    if (!busInfo?.id) return null;
+
+    const trackingUrl = getPublicBusTrackingUrl(busInfo.id);
+    return trackingUrl || null;
   };
 
   const formatReceipt = (ticketData: TicketFormData) => {
@@ -123,46 +126,7 @@ Payment: ${ticketData.paymentMethod.toUpperCase()}
 Passenger Type: ${ticketData.type.toUpperCase()}
 ------------------------------------------------------
 Thank you, have a safe trip
-
-Scan to view live location and rate your trip
-
-Scan Me!
     `.trim();
-  };
-
-  const handleTestQrPrint = async () => {
-    if (!busInfo?.id) {
-      toast.error("Bus info is not available.");
-      return;
-    }
-
-    const qrText = `${window.location.origin}/bus/track/${busInfo.id}`;
-
-    try {
-      const result = await BusPrinter.testQrPrint({ qrText });
-      // console.log("QR print test result:", result);
-      toast.success(result.success ? "QR test print sent" : "QR test print failed");
-    } catch (error) {
-      console.error("QR print test failed:", error);
-      toast.error("QR print test failed");
-    }
-  };
-
-  const handleTestQrCapability = async () => {
-    if (!busInfo?.id) {
-      toast.error("Bus info is not available.");
-      return;
-    }
-
-    const qrText = `${window.location.origin}/bus/track/${busInfo.id}`;
-
-    try {
-      const result = await BusPrinter.testQrCapability({ qrText });
-      toast.success(JSON.stringify(result));
-    } catch (error) {
-      console.error("QR capability test failed:", error);
-      toast.error("QR capability test failed");
-    }
   };
 
   const handleIssueTicket = async (ticketData: TicketFormData) => {
@@ -326,16 +290,16 @@ Scan Me!
           transition={{ duration: 0.2, ease: "easeOut" }}
           className="mb-3 md:mb-5"
         >
-          <div className="flex flex-col gap-2 rounded-2xl bg-white/85 backdrop-blur-sm border border-white/70 shadow-sm p-3 sm:p-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-2 rounded-2xl border border-white/70 bg-white/85 p-3 shadow-sm backdrop-blur-sm sm:p-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Conductor Dashboard</h2>
-              <p className="mt-0.5 text-xs sm:text-sm md:text-base text-gray-600">Issue tickets and manage your trip</p>
+              <h2 className="text-lg font-bold text-gray-900 sm:text-xl md:text-2xl">Conductor Dashboard</h2>
+              <p className="mt-0.5 text-xs text-gray-600 sm:text-sm md:text-base">Issue tickets and manage your trip</p>
             </div>
 
             <button
               disabled={isLoading || isIssuingTicket || isPrintingReceipt}
               onClick={handleChangeBus}
-              className="cursor-pointer inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gray-100 px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-100 px-3.5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               <LogOut className="h-4 w-4" />
               <span>Change Bus</span>
@@ -365,20 +329,6 @@ Scan Me!
                 onUpdateStatus={() => setShowStatusModal(true)}
                 onReportLostItem={() => setShowLostItemForm(true)}
               />
-
-              <button
-                onClick={handleTestQrCapability}
-                className="cursor-pointer w-full rounded-xl bg-purple-600 px-4 py-3 text-white font-medium hover:bg-purple-700 transition"
-              >
-                Test QR Capability
-              </button>
-
-              <button
-                onClick={handleTestQrPrint}
-                className="cursor-pointer w-full rounded-xl bg-indigo-600 px-4 py-3 text-white font-medium hover:bg-indigo-700 transition"
-              >
-                Test QR Print
-              </button>
 
               <PassengerList passengers={passengers} onRemovePassenger={removePassenger} />
             </>
@@ -434,7 +384,7 @@ function NoActiveTripPlaceholder({ busPlateNumber }: NoActiveTripPlaceholderProp
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      className="rounded-2xl bg-white p-5 sm:p-7 md:p-9 shadow-lg border border-gray-100 text-center"
+      className="rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-lg sm:p-7 md:p-9"
     >
       <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 sm:h-18 sm:w-18 md:h-20 md:w-20">
         <motion.div
@@ -446,9 +396,9 @@ function NoActiveTripPlaceholder({ busPlateNumber }: NoActiveTripPlaceholderProp
         </motion.div>
       </div>
 
-      <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 mb-2">No Active Trip</h3>
+      <h3 className="mb-2 text-base font-semibold text-gray-900 sm:text-lg md:text-xl">No Active Trip</h3>
 
-      <p className="mx-auto mb-5 max-w-md text-sm sm:text-base text-gray-600 leading-relaxed">
+      <p className="mx-auto mb-5 max-w-md text-sm leading-relaxed text-gray-600 sm:text-base">
         Click “Start Trip” to begin accepting passengers and issuing tickets.
       </p>
 

@@ -13,7 +13,8 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
 
-  // Determine active page from current route
+  const isConductor = userRole === "conductor";
+
   const getCurrentPage = () => {
     const path = location.pathname;
 
@@ -41,128 +42,153 @@ export function Navbar({ onNavigate, userRole, logout }: NavbarProps) {
           { id: "lostandfound", label: "Lost & Found", icon: Package },
         ]
       : userRole === "conductor"
-      ? [{ id: "conductor", label: "My Dashboard", icon: Ticket }]
-      : userRole === "qr_tracking"
-      ? [{ id: "qr_tracking", label: "QR Tracking", icon: Map },
-        { id: "lostandfound", label: "Lost & Found", icon: Package },
-        { id: "feedback", label: "Feedback", icon: FileText }
-      ]
-      : [
-          { id: "passenger", label: "Track Buses", icon: Map },
-          { id: "lostandfound", label: "Lost & Found", icon: Package },
-        ];
+        ? [{ id: "conductor", label: "Conductor Portal", icon: Ticket }]
+        : userRole === "qr_tracking"
+          ? [
+              { id: "qr_tracking", label: "QR Tracking", icon: Map },
+              { id: "lostandfound", label: "Lost & Found", icon: Package },
+              { id: "feedback", label: "Feedback", icon: FileText },
+            ]
+          : [
+              { id: "passenger", label: "Track Buses", icon: Map },
+              { id: "lostandfound", label: "Lost & Found", icon: Package },
+            ];
 
   return (
-    <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate("/")}>
-              <div className="w-10 h-10 bg-white border border-gray-700 rounded-xl flex items-center justify-center shadow-lg">
-                <img src="/logo-no-bg.png" alt="" />
-              </div>
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/80 shadow-lg backdrop-blur-xl">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          <div
+            className="flex min-w-0 cursor-pointer items-center gap-3"
+            onClick={() => onNavigate(isConductor ? "conductor" : "/")}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-700 bg-white shadow-lg">
+              <img src="/logo-no-bg.png" alt="Logo" />
+            </div>
+
+            {isConductor ? (
+              <>
+                <div className="block min-w-0 sm:hidden">
+                  <h2 className="truncate text-base font-semibold text-gray-900">Conductor Portal</h2>
+                </div>
+
+                <div className="hidden sm:block">
+                  <h2 className="text-gray-900">Dasvan Dotscoop</h2>
+                  <p className="text-xs text-gray-500">Smart Transport System</p>
+                </div>
+              </>
+            ) : (
               <div className="hidden sm:block">
                 <h2 className="text-gray-900">Dasvan Dotscoop</h2>
-                <p className="text-gray-500 text-xs">Smart Transport System</p>
+                <p className="text-xs text-gray-500">Smart Transport System</p>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-2">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => onNavigate(item.id)}
-                    className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      activePage === item.id
-                        ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-200"
-                        : "text-gray-600 hover:bg-gray-100 "
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="text-sm">{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+          <div className="hidden items-center gap-2 md:flex">
+            {navItems.map((item) => {
+              const Icon = item.icon;
 
-            {/* User Menu */}
-            <div className="relative flex items-center gap-3">
-              <button type="button"
-                onClick={() => { if (userRole === "admin") { setUserMenuOpen((prev) => !prev); } }}
-                className="cursor-pointer hidden sm:flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:bg-gray-100 transition-all">
-                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  className={`flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 transition-all ${
+                    activePage === item.id
+                      ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-200"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-sm">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
-                <div className="hidden lg:block text-left">
-                  <p className="text-gray-900 text-sm capitalize">{userRole}</p>
-                  <p className="text-gray-500 text-xs">Dasmariñas-Alabang Route</p>
-                </div>
-                {userRole === "admin" &&(
-                  <ChevronDown
-                    className={`w-4 h-4 text-gray-500 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}/>
-                )}
-              </button>
+          <div className="relative flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (userRole === "admin") {
+                  setUserMenuOpen((prev) => !prev);
+                }
+              }}
+              className="hidden cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-2 transition-all hover:bg-gray-100 sm:flex"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600">
+                <User className="h-4 w-4 text-white" />
+              </div>
 
-              {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden z-50 hidden sm:block">
-                  <div className="p-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUserMenuOpen(false);
-                        logout?.();
-                      }}
-                      className="w-full cursor-pointer flex items-center gap-2 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors text-sm"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Logout</span>
-                    </button>
-                  </div>
-                </div>
+              <div className="hidden text-left lg:block">
+                <p className="text-sm capitalize text-gray-900">{userRole}</p>
+                <p className="text-xs text-gray-500">Dasmariñas-Alabang Route</p>
+              </div>
+
+              {userRole === "admin" && (
+                <ChevronDown
+                  className={`h-4 w-4 text-gray-500 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+                />
               )}
+            </button>
 
+            {userMenuOpen && (
+              <div className="absolute right-0 top-full z-50 mt-2 hidden w-60 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl sm:block">
+                <div className="p-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      logout?.();
+                    }}
+                    className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!isConductor && (
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
-            </div>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
-            <div className="px-4 py-3 space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      onNavigate(item.id);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      activePage === item.id
-                        ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+      {!isConductor && mobileMenuOpen && (
+        <div className="border-t border-gray-200 bg-white md:hidden">
+          <div className="space-y-1 px-4 py-3">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onNavigate(item.id);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-all ${
+                    activePage === item.id
+                      ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </div>
-        )}
-      </nav>
-    </>
+        </div>
+      )}
+    </nav>
   );
 }

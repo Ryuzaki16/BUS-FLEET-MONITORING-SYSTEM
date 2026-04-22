@@ -29,17 +29,29 @@ public class BusPrinterPlugin extends Plugin {
     private static final String TAG = "PrinterPlugin";
     private static final String PRINTER_PACKAGE = "com.bld.settings.print";
 
+    private static final int QR_SIZE = 380;
+    private static final int FINAL_FEED_LINES = 4;
+    private static final int QR_TEST_FINAL_FEED_LINES = 2;
+
+    // Keep this as 1 first since that is what your existing code already uses.
+    // If it still does not center on the actual printer, test 0 or 2.
+    private static final int CENTER_ALIGN = 1;
+    private static final int TEXT_SIZE = 3;
+
+    private static final String QR_INFO_TEXT = "SCAN TO VIEW LIVE LOCATION AND RATE YOUR TRIP";
+    private static final String SCAN_ME_TEXT = "SCAN ME!";
+
     @PluginMethod
     public void testQrCapability(PluginCall call) {
-        String qrText = call.getString("qrText");
+        String qrText = clean(call.getString("qrText"));
 
-        if (qrText == null || qrText.trim().isEmpty()) {
+        if (qrText.isEmpty()) {
             call.reject("QR text is required");
             return;
         }
 
         try {
-            JSObject result = dryRunQrCapability(qrText.trim());
+            JSObject result = dryRunQrCapability(qrText);
             call.resolve(result);
         } catch (Exception e) {
             Log.e(TAG, "testQrCapability failed", e);
@@ -49,15 +61,15 @@ public class BusPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void testQrPrint(PluginCall call) {
-        String qrText = call.getString("qrText");
+        String qrText = clean(call.getString("qrText"));
 
-        if (qrText == null || qrText.trim().isEmpty()) {
+        if (qrText.isEmpty()) {
             call.reject("QR text is required");
             return;
         }
 
         try {
-            boolean success = tryDirectQrTestPrint(qrText.trim());
+            boolean success = tryDirectQrTestPrint(qrText);
 
             JSObject result = new JSObject();
             result.put("success", success);
@@ -72,30 +84,31 @@ public class BusPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void printReceipt(PluginCall call) {
-        String text = call.getString("text");
-        String qrText = call.getString("qrText");
+        String text = clean(call.getString("text"));
+        String qrText = clean(call.getString("qrText"));
         boolean enableQr = call.getBoolean("enableQr", false);
 
-        if (text == null || text.trim().isEmpty()) {
+        if (text.isEmpty()) {
             call.reject("Receipt text is required");
             return;
         }
 
         try {
-            boolean directPrinted = tryDirectPrint(text.trim(), enableQr ? qrText : null);
+            String effectiveQrText = enableQr ? qrText : "";
+            boolean directPrinted = tryDirectPrint(text, effectiveQrText);
 
             if (directPrinted) {
                 JSObject result = new JSObject();
                 result.put("success", true);
                 result.put("method", "direct");
                 result.put("message", "Receipt printed directly");
-                result.put("qrEnabled", enableQr && qrText != null && !qrText.trim().isEmpty());
+                result.put("qrEnabled", !effectiveQrText.isEmpty());
                 call.resolve(result);
                 return;
             }
 
             Log.d(TAG, "Direct print unavailable, falling back to printer service app");
-            boolean intentSent = tryIntentPrint(text.trim());
+            boolean intentSent = tryIntentPrint(text);
 
             if (intentSent) {
                 JSObject result = new JSObject();
@@ -132,31 +145,28 @@ public class BusPrinterPlugin extends Plugin {
             printManagerClassFound = true;
             logs.add("Found android.bld.PrintManager");
 
-            Method getDefaultInstanceMethod = printManagerClass.getMethod("getDefaultInstance", Context.class);
-            Object printManager = getDefaultInstanceMethod.invoke(null, getContext());
-
+            Object printManager = resolvePrintManager(printManagerClass);
             if (printManager == null) {
                 logs.add("PrintManager instance is null");
-                result.put("success", false);
-                result.put("printManagerClassFound", printManagerClassFound);
-                result.put("opened", false);
-                result.put("bitmapGenerated", false);
-                result.put("imageMethodFound", false);
-                result.put("imageMethodWorked", false);
-                result.put("imageMethodUsed", JSObject.NULL);
-                result.put("logs", logs.toString());
-                return result;
+                return buildCapabilityResult(
+                        false,
+                        printManagerClassFound,
+                        false,
+                        false,
+                        false,
+                        false,
+                        null,
+                        logs);
             }
 
-            Method openMethod = printManagerClass.getMethod("open");
-            openMethod.invoke(printManager);
+            invokeNoArg(printManagerClass, printManager, "open");
             opened = true;
             logs.add("Opened PrintManager successfully");
 
             trySetBlackLabel(printManagerClass, printManager, false);
             logs.add("Called setBlackLabel(false) if available");
 
-            Bitmap qrBitmap = generateQrBitmap(qrText, 365, 365);
+            Bitmap qrBitmap = generateQrBitmap(qrText, QR_SIZE, QR_SIZE);
             bitmapGenerated = true;
             logs.add("Generated QR bitmap successfully");
 
@@ -211,7 +221,7 @@ public class BusPrinterPlugin extends Plugin {
                             break;
                         }
                     }
-                } catch (NoSuchMethodException noSuchMethodException) {
+                } catch (NoSuchMethodException e) {
                     logs.add("Method not found: " + attempt);
                 } catch (Throwable t) {
                     logs.add("Method found but invoke failed: " + attempt + " -> "
@@ -223,18 +233,17 @@ public class BusPrinterPlugin extends Plugin {
                 }
             }
 
-            // NOTE: We intentionally DO NOT call start() here.
             logs.add("Dry-run completed without calling start() (no paper used)");
 
-            result.put("success", imageMethodWorked);
-            result.put("printManagerClassFound", printManagerClassFound);
-            result.put("opened", opened);
-            result.put("bitmapGenerated", bitmapGenerated);
-            result.put("imageMethodFound", imageMethodFound);
-            result.put("imageMethodWorked", imageMethodWorked);
-            result.put("imageMethodUsed", imageMethodUsed == null ? JSObject.NULL : imageMethodUsed);
-            result.put("logs", logs.toString());
-            return result;
+            return buildCapabilityResult(
+                    imageMethodWorked,
+                    printManagerClassFound,
+                    opened,
+                    bitmapGenerated,
+                    imageMethodFound,
+                    imageMethodWorked,
+                    imageMethodUsed,
+                    logs);
 
         } catch (ClassNotFoundException e) {
             logs.add("PrintManager class not found: " + e.getMessage());
@@ -242,7 +251,28 @@ public class BusPrinterPlugin extends Plugin {
             logs.add("Dry-run failed: " + t.getClass().getSimpleName() + ": " + t.getMessage());
         }
 
-        result.put("success", false);
+        return buildCapabilityResult(
+                false,
+                printManagerClassFound,
+                opened,
+                bitmapGenerated,
+                imageMethodFound,
+                imageMethodWorked,
+                imageMethodUsed,
+                logs);
+    }
+
+    private JSObject buildCapabilityResult(
+            boolean success,
+            boolean printManagerClassFound,
+            boolean opened,
+            boolean bitmapGenerated,
+            boolean imageMethodFound,
+            boolean imageMethodWorked,
+            String imageMethodUsed,
+            List<String> logs) {
+        JSObject result = new JSObject();
+        result.put("success", success);
         result.put("printManagerClassFound", printManagerClassFound);
         result.put("opened", opened);
         result.put("bitmapGenerated", bitmapGenerated);
@@ -256,31 +286,21 @@ public class BusPrinterPlugin extends Plugin {
     private boolean tryDirectQrTestPrint(String qrText) {
         try {
             Class<?> printManagerClass = Class.forName("android.bld.PrintManager");
-
-            Method getDefaultInstanceMethod = printManagerClass.getMethod("getDefaultInstance", Context.class);
-            Object printManager = getDefaultInstanceMethod.invoke(null, getContext());
+            Object printManager = resolvePrintManager(printManagerClass);
 
             if (printManager == null) {
                 return false;
             }
 
-            Method openMethod = printManagerClass.getMethod("open");
-            openMethod.invoke(printManager);
-
+            invokeNoArg(printManagerClass, printManager, "open");
             trySetBlackLabel(printManagerClass, printManager, false);
 
-            Method addTextMethod = printManagerClass.getMethod(
-                    "addText",
-                    int.class,
-                    int.class,
-                    boolean.class,
-                    boolean.class,
-                    String.class);
+            Method addTextMethod = resolveAddTextMethod(printManagerClass);
 
-            addTextMethod.invoke(printManager, 1, 3, true, false, "QR TEST");
+            addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, true, false, "QR TEST");
             tryAddLineFeed(printManagerClass, printManager, 1);
 
-            Bitmap qrBitmap = generateQrBitmap(qrText, 365, 365);
+            Bitmap qrBitmap = generateQrBitmap(qrText, QR_SIZE, QR_SIZE);
             boolean qrImagePrinted = tryPrintBitmap(printManagerClass, printManager, qrBitmap);
 
             if (!qrImagePrinted) {
@@ -288,12 +308,10 @@ public class BusPrinterPlugin extends Plugin {
                 return false;
             }
 
-            tryAddLineFeed(printManagerClass, printManager, 1);
-            addTextMethod.invoke(printManager, 1, 3, false, false, "Scan Me!");
-            tryAddLineFeed(printManagerClass, printManager, 2);
+            printScanMeLabel(printManagerClass, printManager, addTextMethod);
+            tryAddLineFeed(printManagerClass, printManager, QR_TEST_FINAL_FEED_LINES);
 
-            Method startMethod = printManagerClass.getMethod("start");
-            startMethod.invoke(printManager);
+            invokeNoArg(printManagerClass, printManager, "start");
 
             Log.d(TAG, "QR test print succeeded");
             return true;
@@ -308,41 +326,31 @@ public class BusPrinterPlugin extends Plugin {
             Log.d(TAG, "Trying direct print via android.bld.PrintManager");
 
             Class<?> printManagerClass = Class.forName("android.bld.PrintManager");
-
-            Method getDefaultInstanceMethod = printManagerClass.getMethod("getDefaultInstance", Context.class);
-            Object printManager = getDefaultInstanceMethod.invoke(null, getContext());
+            Object printManager = resolvePrintManager(printManagerClass);
 
             if (printManager == null) {
                 Log.w(TAG, "PrintManager instance is null");
                 return false;
             }
 
-            Method openMethod = printManagerClass.getMethod("open");
-            openMethod.invoke(printManager);
-
+            invokeNoArg(printManagerClass, printManager, "open");
             trySetBlackLabel(printManagerClass, printManager, false);
 
-            Method addTextMethod = printManagerClass.getMethod(
-                    "addText",
-                    int.class,
-                    int.class,
-                    boolean.class,
-                    boolean.class,
-                    String.class);
+            Method addTextMethod = resolveAddTextMethod(printManagerClass);
+            addTextMethod.invoke(printManager, 1, TEXT_SIZE, false, false, text);
 
-            addTextMethod.invoke(printManager, 1, 3, false, false, text);
+            if (!qrText.isEmpty()) {
+                printQrInfoLabel(printManagerClass, printManager, addTextMethod);
 
-            if (qrText != null && !qrText.trim().isEmpty()) {
                 Log.d(TAG, "QR requested, generating bitmap");
-                tryAddLineFeed(printManagerClass, printManager, 2);
+                tryAddLineFeed(printManagerClass, printManager, 1);
 
-                Bitmap qrBitmap = generateQrBitmap(qrText, 365, 365);
+                Bitmap qrBitmap = generateQrBitmap(qrText, QR_SIZE, QR_SIZE);
                 boolean qrImagePrinted = tryPrintBitmap(printManagerClass, printManager, qrBitmap);
 
                 if (qrImagePrinted) {
                     Log.d(TAG, "QR bitmap added successfully");
-                    tryAddLineFeed(printManagerClass, printManager, 1);
-                    addTextMethod.invoke(printManager, 1, 3, false, false, "Scan Me!");
+                    printScanMeLabel(printManagerClass, printManager, addTextMethod);
                 } else {
                     Log.w(TAG, "QR bitmap printing not supported, skipping QR on receipt");
                 }
@@ -350,10 +358,8 @@ public class BusPrinterPlugin extends Plugin {
                 Log.d(TAG, "QR not requested / missing qrText");
             }
 
-            tryAddLineFeed(printManagerClass, printManager, 9);
-
-            Method startMethod = printManagerClass.getMethod("start");
-            startMethod.invoke(printManager);
+            tryAddLineFeed(printManagerClass, printManager, FINAL_FEED_LINES);
+            invokeNoArg(printManagerClass, printManager, "start");
 
             Log.d(TAG, "Direct print succeeded");
             return true;
@@ -369,9 +375,44 @@ public class BusPrinterPlugin extends Plugin {
         }
     }
 
+    private void printQrInfoLabel(Class<?> printManagerClass, Object printManager, Method addTextMethod)
+            throws Exception {
+        tryAddLineFeed(printManagerClass, printManager, 1);
+        addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, true, false, QR_INFO_TEXT);
+        tryAddLineFeed(printManagerClass, printManager, 1);
+    }
+
+    private void printScanMeLabel(Class<?> printManagerClass, Object printManager, Method addTextMethod)
+            throws Exception {
+        tryAddLineFeed(printManagerClass, printManager, 1);
+        addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, true, false, SCAN_ME_TEXT);
+        tryAddLineFeed(printManagerClass, printManager, 1);
+    }
+
+    private Object resolvePrintManager(Class<?> printManagerClass) throws Exception {
+        Method getDefaultInstanceMethod = printManagerClass.getMethod("getDefaultInstance", Context.class);
+        return getDefaultInstanceMethod.invoke(null, getContext());
+    }
+
+    private Method resolveAddTextMethod(Class<?> printManagerClass) throws Exception {
+        return printManagerClass.getMethod(
+                "addText",
+                int.class,
+                int.class,
+                boolean.class,
+                boolean.class,
+                String.class);
+    }
+
+    private void invokeNoArg(Class<?> clazz, Object target, String methodName) throws Exception {
+        Method method = clazz.getMethod(methodName);
+        method.invoke(target);
+    }
+
     private boolean tryPrintBitmap(Class<?> printManagerClass, Object printManager, Bitmap bitmap) {
-        if (bitmap == null)
+        if (bitmap == null) {
             return false;
+        }
 
         try {
             Method method = printManagerClass.getMethod("addImage", Bitmap.class);
@@ -444,6 +485,10 @@ public class BusPrinterPlugin extends Plugin {
     }
 
     private void tryAddLineFeed(Class<?> printManagerClass, Object printManager, int lines) {
+        if (lines <= 0) {
+            return;
+        }
+
         try {
             Method addLineFeedMethod = printManagerClass.getMethod("addLineFeed", int.class);
             addLineFeedMethod.invoke(printManager, lines);
@@ -479,5 +524,9 @@ public class BusPrinterPlugin extends Plugin {
             Log.w(TAG, "Intent print fallback failed", t);
             return false;
         }
+    }
+
+    private String clean(String value) {
+        return value == null ? "" : value.trim();
     }
 }
