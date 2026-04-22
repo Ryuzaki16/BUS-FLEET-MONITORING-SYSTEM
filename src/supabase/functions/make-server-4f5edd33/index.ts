@@ -327,10 +327,13 @@ app.post("/make-server-4f5edd33/trips/:tripId/passengers", async (c) => {
     const trip = await kv.get(`trip:${tripId}`);
     if (trip) {
       const count = passengerData.passengerCount ?? 1; // read from body
+      const type = passengerData.type;
+
       const updatedTrip = {
         ...trip,
         passengersBoarded: (trip.passengersBoarded || 0) + count,
-        totalFare: (trip.totalFare || 0) + (passengerData.fare || 0) 
+        totalFare: (trip.totalFare || 0) + (passengerData.fare || 0),
+        [type]: (trip[type] || 0) + count
       };
       await kv.set(`trip:${tripId}`, updatedTrip);
 

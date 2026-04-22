@@ -16,6 +16,10 @@ interface Trip {
   passengers: any[];
   totalFare: number;
   passengersBoarded: number;
+  regular: number;
+  student: number;
+  senior: number;
+  pwd: number;
 }
 
 export function Analytics() {
@@ -136,6 +140,10 @@ export function Analytics() {
           trips: 0,
           passengers: 0,
           revenue: 0,
+          regular: 0,
+          student: 0,
+          pwd: 0,
+          senior: 0
         };
       }
 
@@ -143,6 +151,10 @@ export function Analytics() {
       // Use the tracked totalFare and passengersBoarded from the trip
       busStats[trip.busId].passengers += trip.passengersBoarded || 0;
       busStats[trip.busId].revenue += trip.totalFare || 0;
+      busStats[trip.busId].regular += trip.regular || 0;
+      busStats[trip.busId].student += trip.student || 0;
+      busStats[trip.busId].pwd += trip.pwd || 0;
+      busStats[trip.busId].senior += trip.senior || 0;
     });
 
     // Calculate efficiency (avg passengers per trip vs capacity)
@@ -475,6 +487,10 @@ export function Analytics() {
                     <th className="text-left py-4 px-6 text-gray-600">Plate Number</th>
                     <th className="text-left py-4 px-6 text-gray-600">Trips</th>
                     <th className="text-left py-4 px-6 text-gray-600">Passengers</th>
+                    <th className="text-left py-4 px-6 text-gray-600">Regular</th>
+                    <th className="text-left py-4 px-6 text-gray-600">Student</th>
+                    <th className="text-left py-4 px-6 text-gray-600">PWD</th>
+                    <th className="text-left py-4 px-6 text-gray-600">Senior Citizen</th>
                     <th className="text-left py-4 px-6 text-gray-600">Revenue</th>
                     <th className="text-left py-4 px-6 text-gray-600">Efficiency</th>
                   </tr>
@@ -513,6 +529,10 @@ export function Analytics() {
                       </td>
                       <td className="py-4 px-6 text-gray-900">{bus.trips}</td>
                       <td className="py-4 px-6 text-gray-900">{bus.passengers}</td>
+                      <td className="py-4 px-6 text-gray-900">{bus.regular}</td>
+                      <td className="py-4 px-6 text-gray-900">{bus.student}</td>
+                      <td className="py-4 px-6 text-gray-900">{bus.pwd}</td>
+                      <td className="py-4 px-6 text-gray-900">{bus.senior}</td>
                       <td className="py-4 px-6 text-gray-900">₱{bus.revenue.toLocaleString()}</td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">

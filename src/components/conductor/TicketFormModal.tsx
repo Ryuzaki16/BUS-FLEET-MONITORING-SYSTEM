@@ -47,7 +47,7 @@ export function TicketFormModal({
 
   const effectiveBoardingPoint = boardingPointIsOther ? boardingPointCustom : boardingPoint;
   const effectiveDestination = destinationIsOther ? destinationCustom : destination;
-  const totalFare = fare * passengerCount;
+  // const totalFare = fare * passengerCount;
 
   const filteredDestinations = useMemo(() => {
     return DESTINATIONS.filter((dest) => dest !== boardingPoint);
@@ -289,7 +289,7 @@ export function TicketFormModal({
                   className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed">
                   <option value="regular">Regular</option>
                   <option value="student">Student</option>
-                  <option value="PWD">PWD</option>
+                  <option value="pwd">PWD</option>
                   <option value="senior">Senior Citizen</option>
                 </select>
               </div>
