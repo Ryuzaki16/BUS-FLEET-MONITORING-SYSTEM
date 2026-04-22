@@ -159,6 +159,7 @@ export function TicketFormModal({
             </div>
 
             <div className="space-y-4 mb-6">
+              {/* Boarding Point */}
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2">Boarding Point</label>
                 <select
@@ -196,6 +197,7 @@ export function TicketFormModal({
                 </AnimatePresence>
               </div>
 
+              {/* Destination */}
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2">Destination</label>
                 <select
@@ -281,12 +283,10 @@ export function TicketFormModal({
 
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2">Passenger Type</label>
-                <select
-                  value={passengerType}
+                <select value={passengerType}
                   onChange={(e) => setPassengerType(e.target.value)}
                   disabled={isBusy}
-                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
-                >
+                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed">
                   <option value="regular">Regular</option>
                   <option value="student">Student</option>
                   <option value="PWD">PWD</option>

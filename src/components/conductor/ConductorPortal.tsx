@@ -47,7 +47,7 @@ export function ConductorPortal() {
     addPassenger,
     removePassenger,
     getTotalRevenue,
-    getTotalPassengers,
+    getTotalPassengers
   } = useTripManagement(busInfo);
 
   const { currentStatus, updateStatus } = useBusStatus(busInfo);

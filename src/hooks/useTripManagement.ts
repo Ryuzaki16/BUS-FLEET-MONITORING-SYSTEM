@@ -121,7 +121,7 @@ export function useTripManagement(busInfo: BusInfo | null) {
           id: passengerId,
           ...passenger,
         };
-
+        
         await passengerAPI.add(currentTripId, newPassenger);
 
         setPassengers((prev) => [...prev, { ...newPassenger, timestamp: new Date() }]);
