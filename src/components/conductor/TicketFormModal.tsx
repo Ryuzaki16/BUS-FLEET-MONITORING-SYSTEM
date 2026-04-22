@@ -1,4 +1,4 @@
-import { CheckCircle, Printer, X } from "lucide-react";
+import { CheckCircle, PhilippinePeso, Printer, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { BOARDING_POINTS, COMMON_ROUTES, DESTINATIONS } from "../../constants/conductor";
@@ -16,7 +16,8 @@ export interface TicketFormData {
   ticketNumber: string;
   boardingPoint: string;
   destination: string;
-  fare: number;
+  fare: number; // total fare
+  unitFare?: number; // per-passenger fare
   paymentMethod: "cash" | "digital";
   type: string;
   passengerCount: number;
@@ -46,6 +47,7 @@ export function TicketFormModal({
 
   const effectiveBoardingPoint = boardingPointIsOther ? boardingPointCustom : boardingPoint;
   const effectiveDestination = destinationIsOther ? destinationCustom : destination;
+  const totalFare = fare * passengerCount;
 
   const filteredDestinations = useMemo(() => {
     return DESTINATIONS.filter((dest) => dest !== boardingPoint);
@@ -95,6 +97,7 @@ export function TicketFormModal({
     setDestination(defaultDestination);
     setFare(calculateFare(defaultBoardingPoint, defaultDestination));
     setPaymentMethod("cash");
+    setPassengerType("regular");
     setBoardingPointIsOther(false);
     setDestinationIsOther(false);
     setBoardingPointCustom("");
@@ -105,14 +108,18 @@ export function TicketFormModal({
   const handleSubmit = async () => {
     if (isBusy) return;
 
+    const safePassengerCount = Math.max(1, passengerCount);
+    const totalFare = fare * safePassengerCount;
+
     const ticketData: TicketFormData = {
       ticketNumber: `${Math.floor(100000 + Math.random() * 900000)}`,
       boardingPoint: effectiveBoardingPoint,
       destination: effectiveDestination,
-      fare,
+      fare: totalFare,
+      unitFare: fare,
       paymentMethod,
       type: passengerType,
-      passengerCount,
+      passengerCount: safePassengerCount,
     };
 
     const success = await onIssueTicket(ticketData);
@@ -152,7 +159,6 @@ export function TicketFormModal({
             </div>
 
             <div className="space-y-4 mb-6">
-              {/* Boarding Point */}
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2">Boarding Point</label>
                 <select
@@ -190,7 +196,6 @@ export function TicketFormModal({
                 </AnimatePresence>
               </div>
 
-              {/* Destination */}
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2">Destination</label>
                 <select
@@ -229,19 +234,35 @@ export function TicketFormModal({
               </div>
 
               <div className="flex gap-2">
-                <div className="relative">
+                <div className="flex-1">
                   <label className="block text-gray-700 text-sm font-medium mb-2">Fare</label>
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">₱</span>
-                    <input type="number" value={fare}
+
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-2 flex items-center text-gray-500">
+                      <PhilippinePeso className="w-4 h-4" />
+                    </div>
+
+                    <input
+                      type="number"
+                      value={fare}
                       onChange={(e) => setFare(Number(e.target.value))}
-                      disabled={isBusy} className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"/>
+                      disabled={isBusy}
+                      className="w-full pl-7 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2">
-                    Number of Passengers</label>
-                  <input type="number" min={1} value={passengerCount}
+
+                <div className="flex-1">
+                  <label className="block text-gray-700 text-sm font-medium mb-2">Number of Passengers</label>
+
+                  <input
+                    type="number"
+                    min={1}
+                    value={passengerCount}
                     onChange={(e) => setPassengerCount(Math.max(1, Number(e.target.value)))}
-                    disabled={isBusy} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"                  />
+                    disabled={isBusy}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                  />
                 </div>
               </div>
 
@@ -260,10 +281,12 @@ export function TicketFormModal({
 
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2">Passenger Type</label>
-                <select value={passengerType}
+                <select
+                  value={passengerType}
                   onChange={(e) => setPassengerType(e.target.value)}
                   disabled={isBusy}
-                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed">
+                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                >
                   <option value="regular">Regular</option>
                   <option value="student">Student</option>
                   <option value="PWD">PWD</option>

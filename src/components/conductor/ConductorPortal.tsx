@@ -47,7 +47,7 @@ export function ConductorPortal() {
     addPassenger,
     removePassenger,
     getTotalRevenue,
-    getTotalPassengers
+    getTotalPassengers,
   } = useTripManagement(busInfo);
 
   const { currentStatus, updateStatus } = useBusStatus(busInfo);
@@ -102,6 +102,10 @@ export function ConductorPortal() {
       minute: "2-digit",
     });
 
+    const passengerCount = Math.max(1, Number(ticketData.passengerCount || 1));
+    const totalFare = Number(ticketData.fare);
+    const unitFare = typeof ticketData.unitFare === "number" ? Number(ticketData.unitFare) : totalFare / passengerCount;
+
     return `
 Dasmarinas Van Drivers Operators
 Transport Service Cooperative
@@ -121,9 +125,11 @@ Seat Capacity: ${busInfo?.capacity ?? "N/A"}
 From: ${ticketData.boardingPoint}
 To: ${ticketData.destination}
 
-Fare: PHP ${Number(ticketData.fare).toFixed(2)}
 Payment: ${ticketData.paymentMethod.toUpperCase()}
 Passenger Type: ${ticketData.type.toUpperCase()}
+Passengers: ${passengerCount}
+${passengerCount > 1 ? `Fare per Passenger: PHP ${unitFare.toFixed(2)}` : ""}
+Fare: PHP ${totalFare.toFixed(2)}
 ------------------------------------------------------
 Thank you, have a safe trip
     `.trim();
