@@ -321,6 +321,10 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
                   <span className="text-gray-600 text-sm sm:text-base">Base Fare</span>
                   <span className="text-lg sm:text-xl text-indigo-600">₱15</span>
                 </div>
+                <div className="flex items-start sm:items-center justify-between py-2 sm:py-3">
+                  <span className="text-gray-600 text-sm sm:text-base">Student Base Fare (-20% disc.)</span>
+                  <span className="text-lg sm:text-xl text-indigo-600">₱12</span>
+                </div>
               </div>
             </div>
 
