@@ -241,6 +241,7 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
                   <h3 className="text-gray-900 mb-1 sm:mb-2 text-base sm:text-lg">Bus Status</h3>
                   <p className="text-gray-600 text-sm capitalize">Driver: {busData.driver}</p> 
                   {busStatus === 'on-time' && (<p className="text-gray-600 text-sm">ETA: {calculateETA()} mins</p>)}
+                  <p className="text-gray-600 text-sm capitalize">Bus Status: {busStatus}</p>
                 </div>
                 <div
                   className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-2 ${
