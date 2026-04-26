@@ -240,7 +240,7 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
                 <div>
                   <h3 className="text-gray-900 mb-1 sm:mb-2 text-base sm:text-lg">Bus Status</h3>
                   <p className="text-gray-600 text-sm capitalize">Driver: {busData.driver}</p> 
-                  <p className="text-gray-600 text-sm">Estimated Arrival Time to Destination: {calculateETA()} mins</p>
+                  {busStatus === 'on-time' && (<p className="text-gray-600 text-sm">ETA: {calculateETA()} mins</p>)}
                 </div>
                 <div
                   className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-2 ${
@@ -309,15 +309,15 @@ export function BusInfoPublic({ busId, busqrCodeId, onClose }: BusInfoPublicProp
               </div>
               <div className="space-y-2 sm:space-y-3">
                 <div className="flex items-start sm:items-center justify-between py-2 sm:py-3 border-b border-gray-100">
-                  <span className="text-gray-600 text-sm sm:text-base">Route</span>
+                  <span className="text-gray-600 text-sm sm:text-base">Bus Route</span>
                   <span className="text-gray-900 text-right text-sm sm:text-base">{busData.route}</span>
                 </div>
-                <div className="flex items-start sm:items-center justify-between py-2 sm:py-3 border-b border-gray-100">
-                  <span className="text-gray-600 text-sm sm:text-base">Direction</span>
+                {/* <div className="flex items-start sm:items-center justify-between py-2 sm:py-3 border-b border-gray-100">
+                  <span className="text-gray-600 text-sm sm:text-base">Bus Direction</span>
                   <span className="text-gray-900 text-sm sm:text-base">Northbound</span>
-                </div>
+                </div> */}
                 <div className="flex items-start sm:items-center justify-between py-2 sm:py-3">
-                  <span className="text-gray-600 text-sm sm:text-base">Fare</span>
+                  <span className="text-gray-600 text-sm sm:text-base">Base Fare</span>
                   <span className="text-lg sm:text-xl text-indigo-600">₱15</span>
                 </div>
               </div>
