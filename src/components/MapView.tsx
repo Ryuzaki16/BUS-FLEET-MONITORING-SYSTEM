@@ -334,14 +334,14 @@ export function MapView({ buses, selectedBus, onBusSelect, height = '500px', rou
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 rounded-full flex-shrink-0" />
             <span className="text-gray-700 whitespace-nowrap">You</span>
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full flex-shrink-0" />
             <span className="text-gray-700 whitespace-nowrap">Start</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full flex-shrink-0" />
             <span className="text-gray-700 whitespace-nowrap">Destination</span>
-          </div>
+          </div> */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-indigo-600 rounded-full flex-shrink-0" />
             <span className="text-gray-700 whitespace-nowrap">Bus</span>
