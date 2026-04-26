@@ -47,7 +47,7 @@ export function ConductorPortal() {
     addPassenger,
     removePassenger,
     getTotalRevenue,
-    getTotalPassengers
+    getTotalPassengers,
   } = useTripManagement(busInfo);
 
   const { currentStatus, updateStatus } = useBusStatus(busInfo);
@@ -106,33 +106,41 @@ export function ConductorPortal() {
     const totalFare = Number(ticketData.fare);
     const unitFare = typeof ticketData.unitFare === "number" ? Number(ticketData.unitFare) : totalFare / passengerCount;
 
+    const label = (key: string, value: string) => `${key.padEnd(14, " ")}: ${value}`;
+    const centered = (text: string, width = 46) => {
+      const trimmed = text.trim();
+      if (trimmed.length >= width) return trimmed;
+      const leftPad = Math.max(0, Math.floor((width - trimmed.length) / 2));
+      return `${" ".repeat(leftPad)}${trimmed}`;
+    };
+
     return `
-Dasmarinas Van Drivers Operators
-Transport Service Cooperative
-Luisa Bldg. 3rd Floor, Camerino Ave,
-Zone 4 Dasmarinas City, Cavite
-Tel No: 09772796996
-------------------------------------------------------
-Date: ${date}
-Time: ${time}
+${centered("DVDOTS COOPERATIVE")}
+${centered("Dasmariñas Van Drivers Operators")}
+${centered("Transport Service Cooperative")}
+${centered("Luisa Bldg. 3rd Floor, Camerino Ave")}
+${centered("Zone 4 Dasmariñas City, Cavite")}
+${centered("Tel no: +639945539286")}
 
-Ticket No: ${ticketData.ticketNumber}
+${label("Date", date)}
+${label("Time", time)}
 
-Bus Driver Name: ${busInfo?.driver ?? "N/A"}
-Bus No: ${busInfo?.plateNumber ?? "N/A"}
-Seat Capacity: ${busInfo?.capacity ?? "N/A"}
-------------------------------------------------------
-From: ${ticketData.boardingPoint}
-To: ${ticketData.destination}
+${label("Ticket No.", ticketData.ticketNumber)}
 
-Payment: ${ticketData.paymentMethod.toUpperCase()}
-Passenger Type: ${ticketData.type.toUpperCase()}
-Passengers: ${passengerCount}
-${passengerCount > 1 ? `Fare per Passenger: PHP ${unitFare.toFixed(2)}` : ""}
-Fare: PHP ${totalFare.toFixed(2)}
-------------------------------------------------------
-Thank you, have a safe trip
-    `.trim();
+${label("Driver Name", busInfo?.driver ?? "N/A")}
+${label("Bus No.", busInfo?.plateNumber ?? "N/A")}
+${label("Seat Cap.", String(busInfo?.capacity ?? "N/A"))}
+${label("From", ticketData.boardingPoint)}
+${label("To", ticketData.destination)}
+
+${label("Pass. Type", ticketData.type.toUpperCase())}
+${label("Pass. No.", String(passengerCount))}
+${label("Pass. Fare", `PHP ${unitFare.toFixed(2)}`)}
+${label("Total Fare", `PHP ${totalFare.toFixed(2)}`)}
+${label("Payment", ticketData.paymentMethod.toUpperCase())}
+
+${centered("Thank you, have a safe trip")}
+  `.trim();
   };
 
   const handleIssueTicket = async (ticketData: TicketFormData) => {

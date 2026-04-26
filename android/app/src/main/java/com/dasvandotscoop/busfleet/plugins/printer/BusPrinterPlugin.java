@@ -35,7 +35,7 @@ public class BusPrinterPlugin extends Plugin {
 
     // Keep this as 1 first since that is what your existing code already uses.
     // If it still does not center on the actual printer, test 0 or 2.
-    private static final int CENTER_ALIGN = 1;
+    private static final int CENTER_ALIGN = 2;
     private static final int TEXT_SIZE = 3;
 
     private static final String QR_INFO_TEXT = "SCAN TO VIEW LIVE LOCATION AND RATE YOUR TRIP";
