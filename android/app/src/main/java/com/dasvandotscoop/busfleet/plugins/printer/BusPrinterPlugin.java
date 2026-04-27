@@ -31,14 +31,16 @@ public class BusPrinterPlugin extends Plugin {
     private static final String TAG = "PrinterPlugin";
     private static final String PRINTER_PACKAGE = "com.bld.settings.print";
 
-    private static final int QR_SIZE = 380;
+    private static final int QR_SIZE = 180;
     private static final int FINAL_FEED_LINES = 4;
     private static final int QR_TEST_FINAL_FEED_LINES = 2;
 
     private static final int CENTER_ALIGN = 2;
     private static final int TEXT_ALIGN = 1;
+    private static final int IMAGE_ALIGN = 2;
+
     private static final int TEXT_SIZE = 3;
-    private static final int TITLE_TEXT_SIZE = 4;
+    private static final int TITLE_TEXT_SIZE = 5;
 
     private static final String QR_INFO_TEXT = "SCAN TO VIEW LIVE LOCATION AND RATE YOUR TRIP";
     private static final String SCAN_ME_TEXT = "SCAN ME!";
@@ -176,15 +178,35 @@ public class BusPrinterPlugin extends Plugin {
             logs.add("Generated QR bitmap successfully");
 
             String[] attempts = new String[] {
-                    "addImage(Bitmap)",
-                    "addBitmap(Bitmap)",
                     "addImage(int, Bitmap)",
-                    "addBitmap(int, Bitmap)"
+                    "addBitmap(int, Bitmap)",
+                    "addImage(Bitmap)",
+                    "addBitmap(Bitmap)"
             };
 
             for (String attempt : attempts) {
                 try {
                     switch (attempt) {
+                        case "addImage(int, Bitmap)": {
+                            Method method = printManagerClass.getMethod("addImage", int.class, Bitmap.class);
+                            imageMethodFound = true;
+                            logs.add("Found method: " + attempt);
+                            method.invoke(printManager, IMAGE_ALIGN, qrBitmap);
+                            imageMethodWorked = true;
+                            imageMethodUsed = attempt;
+                            logs.add("Dry-run method invoke succeeded: " + attempt);
+                            break;
+                        }
+                        case "addBitmap(int, Bitmap)": {
+                            Method method = printManagerClass.getMethod("addBitmap", int.class, Bitmap.class);
+                            imageMethodFound = true;
+                            logs.add("Found method: " + attempt);
+                            method.invoke(printManager, IMAGE_ALIGN, qrBitmap);
+                            imageMethodWorked = true;
+                            imageMethodUsed = attempt;
+                            logs.add("Dry-run method invoke succeeded: " + attempt);
+                            break;
+                        }
                         case "addImage(Bitmap)": {
                             Method method = printManagerClass.getMethod("addImage", Bitmap.class);
                             imageMethodFound = true;
@@ -200,26 +222,6 @@ public class BusPrinterPlugin extends Plugin {
                             imageMethodFound = true;
                             logs.add("Found method: " + attempt);
                             method.invoke(printManager, qrBitmap);
-                            imageMethodWorked = true;
-                            imageMethodUsed = attempt;
-                            logs.add("Dry-run method invoke succeeded: " + attempt);
-                            break;
-                        }
-                        case "addImage(int, Bitmap)": {
-                            Method method = printManagerClass.getMethod("addImage", int.class, Bitmap.class);
-                            imageMethodFound = true;
-                            logs.add("Found method: " + attempt);
-                            method.invoke(printManager, 1, qrBitmap);
-                            imageMethodWorked = true;
-                            imageMethodUsed = attempt;
-                            logs.add("Dry-run method invoke succeeded: " + attempt);
-                            break;
-                        }
-                        case "addBitmap(int, Bitmap)": {
-                            Method method = printManagerClass.getMethod("addBitmap", int.class, Bitmap.class);
-                            imageMethodFound = true;
-                            logs.add("Found method: " + attempt);
-                            method.invoke(printManager, 1, qrBitmap);
                             imageMethodWorked = true;
                             imageMethodUsed = attempt;
                             logs.add("Dry-run method invoke succeeded: " + attempt);
@@ -401,12 +403,9 @@ public class BusPrinterPlugin extends Plugin {
 
             if (i == 0) {
                 addTextMethod.invoke(printManager, CENTER_ALIGN, TITLE_TEXT_SIZE, true, false, cleanLine);
-                tryAddLineFeed(printManagerClass, printManager, 1);
             } else {
                 addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, false, false, cleanLine);
             }
-
-            tryAddLineFeed(printManagerClass, printManager, 1);
         }
 
         tryAddLineFeed(printManagerClass, printManager, 1);
@@ -470,6 +469,24 @@ public class BusPrinterPlugin extends Plugin {
         }
 
         try {
+            Method method = printManagerClass.getMethod("addImage", int.class, Bitmap.class);
+            method.invoke(printManager, IMAGE_ALIGN, bitmap);
+            Log.d(TAG, "Used addImage(int, Bitmap) with mode " + IMAGE_ALIGN);
+            return true;
+        } catch (Throwable ignored) {
+            Log.d(TAG, "addImage(int, Bitmap) unavailable");
+        }
+
+        try {
+            Method method = printManagerClass.getMethod("addBitmap", int.class, Bitmap.class);
+            method.invoke(printManager, IMAGE_ALIGN, bitmap);
+            Log.d(TAG, "Used addBitmap(int, Bitmap) with mode " + IMAGE_ALIGN);
+            return true;
+        } catch (Throwable ignored) {
+            Log.d(TAG, "addBitmap(int, Bitmap) unavailable");
+        }
+
+        try {
             Method method = printManagerClass.getMethod("addImage", Bitmap.class);
             method.invoke(printManager, bitmap);
             Log.d(TAG, "Used addImage(Bitmap)");
@@ -485,24 +502,6 @@ public class BusPrinterPlugin extends Plugin {
             return true;
         } catch (Throwable ignored) {
             Log.d(TAG, "addBitmap(Bitmap) unavailable");
-        }
-
-        try {
-            Method method = printManagerClass.getMethod("addImage", int.class, Bitmap.class);
-            method.invoke(printManager, 1, bitmap);
-            Log.d(TAG, "Used addImage(int, Bitmap) with mode 1");
-            return true;
-        } catch (Throwable ignored) {
-            Log.d(TAG, "addImage(int, Bitmap) unavailable");
-        }
-
-        try {
-            Method method = printManagerClass.getMethod("addBitmap", int.class, Bitmap.class);
-            method.invoke(printManager, 1, bitmap);
-            Log.d(TAG, "Used addBitmap(int, Bitmap) with mode 1");
-            return true;
-        } catch (Throwable ignored) {
-            Log.d(TAG, "addBitmap(int, Bitmap) unavailable");
         }
 
         return false;
