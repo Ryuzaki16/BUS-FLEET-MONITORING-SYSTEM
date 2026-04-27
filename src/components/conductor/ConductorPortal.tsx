@@ -107,21 +107,8 @@ export function ConductorPortal() {
     const unitFare = typeof ticketData.unitFare === "number" ? Number(ticketData.unitFare) : totalFare / passengerCount;
 
     const label = (key: string, value: string) => `${key.padEnd(14, " ")}: ${value}`;
-    const centered = (text: string, width = 46) => {
-      const trimmed = text.trim();
-      if (trimmed.length >= width) return trimmed;
-      const leftPad = Math.max(0, Math.floor((width - trimmed.length) / 2));
-      return `${" ".repeat(leftPad)}${trimmed}`;
-    };
 
     return `
-${centered("DVDOTS COOPERATIVE")}
-${centered("Dasmariñas Van Drivers Operators")}
-${centered("Transport Service Cooperative")}
-${centered("Luisa Bldg. 3rd Floor, Camerino Ave")}
-${centered("Zone 4 Dasmariñas City, Cavite")}
-${centered("Tel no: +639945539286")}
-
 ${label("Date", date)}
 ${label("Time", time)}
 
@@ -138,8 +125,6 @@ ${label("Pass. No.", String(passengerCount))}
 ${label("Pass. Fare", `PHP ${unitFare.toFixed(2)}`)}
 ${label("Total Fare", `PHP ${totalFare.toFixed(2)}`)}
 ${label("Payment", ticketData.paymentMethod.toUpperCase())}
-
-${centered("Thank you, have a safe trip")}
   `.trim();
   };
 
@@ -166,6 +151,16 @@ ${centered("Thank you, have a safe trip")}
       try {
         await BusPrinter.printReceipt({
           text: receiptText,
+          headerLines: [
+            "DVDOTS COOPERATIVE",
+            "",
+            "Dasmariñas Van Drivers Operators",
+            "Transport Service Cooperative",
+            "Luisa Bldg. 3rd Floor, Camerino Ave",
+            "Zone 4 Dasmariñas City, Cavite",
+            "Tel no: +639945539286",
+          ],
+          footerLines: ["Thank you, have a safe trip"],
           ...(qrText ? { qrText, enableQr: true } : {}),
         });
         toast.success("Receipt sent to printer");

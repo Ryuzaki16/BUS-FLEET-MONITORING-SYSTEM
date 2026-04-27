@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -16,6 +17,8 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
+
+import org.json.JSONArray;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -33,10 +36,9 @@ public class BusPrinterPlugin extends Plugin {
     private static final int FINAL_FEED_LINES = 4;
     private static final int QR_TEST_FINAL_FEED_LINES = 2;
 
-    // Keep this as 1 first since that is what your existing code already uses.
-    // If it still does not center on the actual printer, test 0 or 2.
     private static final int CENTER_ALIGN = 2;
     private static final int TEXT_SIZE = 3;
+    private static final int TITLE_TEXT_SIZE = 4;
 
     private static final String QR_INFO_TEXT = "SCAN TO VIEW LIVE LOCATION AND RATE YOUR TRIP";
     private static final String SCAN_ME_TEXT = "SCAN ME!";
@@ -88,6 +90,9 @@ public class BusPrinterPlugin extends Plugin {
         String qrText = clean(call.getString("qrText"));
         boolean enableQr = call.getBoolean("enableQr", false);
 
+        List<String> headerLines = toStringList(call.getData().optJSONArray("headerLines"));
+        List<String> footerLines = toStringList(call.getData().optJSONArray("footerLines"));
+
         if (text.isEmpty()) {
             call.reject("Receipt text is required");
             return;
@@ -95,7 +100,7 @@ public class BusPrinterPlugin extends Plugin {
 
         try {
             String effectiveQrText = enableQr ? qrText : "";
-            boolean directPrinted = tryDirectPrint(text, effectiveQrText);
+            boolean directPrinted = tryDirectPrint(text, effectiveQrText, headerLines, footerLines);
 
             if (directPrinted) {
                 JSObject result = new JSObject();
@@ -321,7 +326,7 @@ public class BusPrinterPlugin extends Plugin {
         }
     }
 
-    private boolean tryDirectPrint(String text, String qrText) {
+    private boolean tryDirectPrint(String text, String qrText, List<String> headerLines, List<String> footerLines) {
         try {
             Log.d(TAG, "Trying direct print via android.bld.PrintManager");
 
@@ -337,7 +342,12 @@ public class BusPrinterPlugin extends Plugin {
             trySetBlackLabel(printManagerClass, printManager, false);
 
             Method addTextMethod = resolveAddTextMethod(printManagerClass);
+
+            printCenteredLines(printManagerClass, printManager, addTextMethod, headerLines);
+
             addTextMethod.invoke(printManager, 1, TEXT_SIZE, false, false, text);
+
+            printCenteredLines(printManagerClass, printManager, addTextMethod, footerLines);
 
             if (!qrText.isEmpty()) {
                 printQrInfoLabel(printManagerClass, printManager, addTextMethod);
@@ -373,6 +383,28 @@ public class BusPrinterPlugin extends Plugin {
             Log.w(TAG, "Direct print failed", t);
             return false;
         }
+    }
+
+    private void printCenteredLines(Class<?> printManagerClass, Object printManager, Method addTextMethod,
+            List<String> lines)
+            throws Exception {
+        if (lines == null || lines.isEmpty()) {
+            return;
+        }
+
+        for (int i = 0; i < lines.size(); i++) {
+            String cleanLine = clean(lines.get(i));
+            if (cleanLine.isEmpty()) {
+                tryAddLineFeed(printManagerClass, printManager, 1);
+                continue;
+            }
+
+            int size = (i == 0) ? TITLE_TEXT_SIZE : TEXT_SIZE;
+            addTextMethod.invoke(printManager, CENTER_ALIGN, size, true, false, cleanLine);
+            tryAddLineFeed(printManagerClass, printManager, 1);
+        }
+
+        tryAddLineFeed(printManagerClass, printManager, 1);
     }
 
     private void printQrInfoLabel(Class<?> printManagerClass, Object printManager, Method addTextMethod)
@@ -524,6 +556,22 @@ public class BusPrinterPlugin extends Plugin {
             Log.w(TAG, "Intent print fallback failed", t);
             return false;
         }
+    }
+
+    private List<String> toStringList(JSONArray array) {
+        List<String> result = new ArrayList<>();
+        if (array == null) {
+            return result;
+        }
+
+        for (int i = 0; i < array.length(); i++) {
+            Object value = array.opt(i);
+            if (value != null) {
+                result.add(String.valueOf(value));
+            }
+        }
+
+        return result;
     }
 
     private String clean(String value) {
