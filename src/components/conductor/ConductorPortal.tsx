@@ -106,7 +106,7 @@ export function ConductorPortal() {
     const totalFare = Number(ticketData.fare);
     const unitFare = typeof ticketData.unitFare === "number" ? Number(ticketData.unitFare) : totalFare / passengerCount;
 
-    const label = (key: string, value: string) => `${key.padEnd(14, " ")}: ${value}`;
+    const label = (key: string, value: string) => `${key.padEnd(11, " ")}: ${value}`;
 
     return `
 ${label("Date", date)}
@@ -153,10 +153,11 @@ ${label("Payment", ticketData.paymentMethod.toUpperCase())}
           text: receiptText,
           headerLines: [
             "DVDOTS COOPERATIVE",
-            "",
-            "Dasmariñas Van Drivers Operators",
+            "Dasmariñas Van Drivers",
+            "Operators",
             "Transport Service Cooperative",
-            "Luisa Bldg. 3rd Floor, Camerino Ave",
+            "Luisa Bldg. 3rd Floor,",
+            "Camerino Ave",
             "Zone 4 Dasmariñas City, Cavite",
             "Tel no: +639945539286",
           ],
@@ -189,10 +190,23 @@ ${label("Payment", ticketData.paymentMethod.toUpperCase())}
 
     try {
       setIsPrintingReceipt(true);
+
       await BusPrinter.printReceipt({
         text: lastReceiptText,
+        headerLines: [
+          "DVDOTS COOPERATIVE",
+          "Dasmariñas Van Drivers",
+          "Operators",
+          "Transport Service Cooperative",
+          "Luisa Bldg. 3rd Floor,",
+          "Camerino Ave",
+          "Zone 4 Dasmariñas City, Cavite",
+          "Tel no: +639945539286",
+        ],
+        footerLines: ["Thank you, have a safe trip"],
         ...(lastReceiptQrText ? { qrText: lastReceiptQrText, enableQr: true } : {}),
       });
+
       toast.success("Receipt sent to printer");
     } catch (error) {
       console.error("Reprint failed:", error);

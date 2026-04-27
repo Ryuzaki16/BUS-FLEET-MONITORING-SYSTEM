@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
 
-import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -37,6 +36,7 @@ public class BusPrinterPlugin extends Plugin {
     private static final int QR_TEST_FINAL_FEED_LINES = 2;
 
     private static final int CENTER_ALIGN = 2;
+    private static final int TEXT_ALIGN = 1;
     private static final int TEXT_SIZE = 3;
     private static final int TITLE_TEXT_SIZE = 4;
 
@@ -343,11 +343,12 @@ public class BusPrinterPlugin extends Plugin {
 
             Method addTextMethod = resolveAddTextMethod(printManagerClass);
 
-            printCenteredLines(printManagerClass, printManager, addTextMethod, headerLines);
+            printHeaderLines(printManagerClass, printManager, addTextMethod, headerLines);
 
-            addTextMethod.invoke(printManager, 1, TEXT_SIZE, false, false, text);
+            addTextMethod.invoke(printManager, TEXT_ALIGN, TEXT_SIZE, false, false, text);
 
-            printCenteredLines(printManagerClass, printManager, addTextMethod, footerLines);
+            tryAddLineFeed(printManagerClass, printManager, 1);
+            printFooterLines(printManagerClass, printManager, addTextMethod, footerLines);
 
             if (!qrText.isEmpty()) {
                 printQrInfoLabel(printManagerClass, printManager, addTextMethod);
@@ -385,7 +386,7 @@ public class BusPrinterPlugin extends Plugin {
         }
     }
 
-    private void printCenteredLines(Class<?> printManagerClass, Object printManager, Method addTextMethod,
+    private void printHeaderLines(Class<?> printManagerClass, Object printManager, Method addTextMethod,
             List<String> lines)
             throws Exception {
         if (lines == null || lines.isEmpty()) {
@@ -395,16 +396,38 @@ public class BusPrinterPlugin extends Plugin {
         for (int i = 0; i < lines.size(); i++) {
             String cleanLine = clean(lines.get(i));
             if (cleanLine.isEmpty()) {
-                tryAddLineFeed(printManagerClass, printManager, 1);
                 continue;
             }
 
-            int size = (i == 0) ? TITLE_TEXT_SIZE : TEXT_SIZE;
-            addTextMethod.invoke(printManager, CENTER_ALIGN, size, true, false, cleanLine);
+            if (i == 0) {
+                addTextMethod.invoke(printManager, CENTER_ALIGN, TITLE_TEXT_SIZE, true, false, cleanLine);
+                tryAddLineFeed(printManagerClass, printManager, 1);
+            } else {
+                addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, false, false, cleanLine);
+            }
+
             tryAddLineFeed(printManagerClass, printManager, 1);
         }
 
         tryAddLineFeed(printManagerClass, printManager, 1);
+    }
+
+    private void printFooterLines(Class<?> printManagerClass, Object printManager, Method addTextMethod,
+            List<String> lines)
+            throws Exception {
+        if (lines == null || lines.isEmpty()) {
+            return;
+        }
+
+        for (String line : lines) {
+            String cleanLine = clean(line);
+            if (cleanLine.isEmpty()) {
+                continue;
+            }
+
+            addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, false, false, cleanLine);
+            tryAddLineFeed(printManagerClass, printManager, 1);
+        }
     }
 
     private void printQrInfoLabel(Class<?> printManagerClass, Object printManager, Method addTextMethod)
