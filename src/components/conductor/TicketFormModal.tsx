@@ -33,7 +33,7 @@ export function TicketFormModal({
 }: TicketFormModalProps) {
   const [boardingPoint, setBoardingPoint] = useState<string>(BOARDING_POINTS[0]);
   const [destination, setDestination] = useState<string>(DESTINATIONS[0]);
-  const [fare, setFare] = useState(45);
+  const [fare, setFare] = useState("45");
   const [passengerType, setPassengerType] = useState<string>("regular");
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "digital">("cash");
 
@@ -41,7 +41,7 @@ export function TicketFormModal({
   const [destinationIsOther, setDestinationIsOther] = useState(false);
   const [boardingPointCustom, setBoardingPointCustom] = useState("");
   const [destinationCustom, setDestinationCustom] = useState("");
-  const [passengerCount, setPassengerCount] = useState(1);
+  const [passengerCount, setPassengerCount] = useState("1");
 
   const isBusy = isIssuingTicket || isPrintingReceipt;
 
@@ -64,7 +64,7 @@ export function TicketFormModal({
     if (newBoardingPoint === "__other__") {
       setBoardingPointIsOther(true);
       setBoardingPointCustom("");
-      setFare(45);
+      setFare("45");
       return;
     }
 
@@ -73,20 +73,20 @@ export function TicketFormModal({
 
     const nextDestination = destination === newBoardingPoint ? getDefaultDestination() : destination;
     setDestination(nextDestination);
-    setFare(calculateFare(newBoardingPoint, nextDestination));
+    setFare(String(calculateFare(newBoardingPoint, nextDestination)));
   };
 
   const handleDestinationChange = (newDestination: string) => {
     if (newDestination === "__other__") {
       setDestinationIsOther(true);
       setDestinationCustom("");
-      setFare(45);
+      setFare("45");
       return;
     }
 
     setDestinationIsOther(false);
     setDestination(newDestination);
-    setFare(calculateFare(boardingPoint, newDestination));
+    setFare(String(calculateFare(boardingPoint, newDestination)));
   };
 
   const resetForm = () => {
@@ -95,28 +95,28 @@ export function TicketFormModal({
 
     setBoardingPoint(defaultBoardingPoint);
     setDestination(defaultDestination);
-    setFare(calculateFare(defaultBoardingPoint, defaultDestination));
+    setFare(String(calculateFare(defaultBoardingPoint, defaultDestination)));
     setPaymentMethod("cash");
     setPassengerType("regular");
     setBoardingPointIsOther(false);
     setDestinationIsOther(false);
     setBoardingPointCustom("");
     setDestinationCustom("");
-    setPassengerCount(1);
+    setPassengerCount("1");
   };
 
   const handleSubmit = async () => {
     if (isBusy) return;
 
-    const safePassengerCount = Math.max(1, passengerCount);
-    const totalFare = fare * safePassengerCount;
+    const safePassengerCount = Math.max(1, Number(passengerCount));
+    const totalFare = Number(fare) * safePassengerCount;
 
     const ticketData: TicketFormData = {
       ticketNumber: `${Math.floor(100000 + Math.random() * 900000)}`,
       boardingPoint: effectiveBoardingPoint,
       destination: effectiveDestination,
       fare: totalFare,
-      unitFare: fare,
+      unitFare: Number(fare),
       paymentMethod,
       type: passengerType,
       passengerCount: safePassengerCount,
@@ -247,7 +247,15 @@ export function TicketFormModal({
                     <input
                       type="number"
                       value={fare}
-                      onChange={(e) => setFare(Number(e.target.value))}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        setFare(value);
+                      }}
+                      onBlur={() => {
+                        if (fare === "" || Number(fare) < 1) {
+                          setFare("1");
+                        }
+                      }}
                       disabled={isBusy}
                       className="w-full pl-7 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                     />
@@ -261,7 +269,15 @@ export function TicketFormModal({
                     type="number"
                     min={1}
                     value={passengerCount}
-                    onChange={(e) => setPassengerCount(Math.max(1, Number(e.target.value)))}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      setPassengerCount(value);
+                    }}
+                    onBlur={() => {
+                      if (passengerCount === "" || Number(passengerCount) < 1) {
+                        setPassengerCount("1");
+                      }
+                    }}
                     disabled={isBusy}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   />
@@ -283,10 +299,12 @@ export function TicketFormModal({
 
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2">Passenger Type</label>
-                <select value={passengerType}
+                <select
+                  value={passengerType}
                   onChange={(e) => setPassengerType(e.target.value)}
                   disabled={isBusy}
-                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed">
+                  className="cursor-pointer w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                >
                   <option value="regular">Regular</option>
                   <option value="student">Student</option>
                   <option value="pwd">PWD</option>

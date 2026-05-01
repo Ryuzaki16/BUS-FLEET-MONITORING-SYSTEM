@@ -31,7 +31,7 @@ public class BusPrinterPlugin extends Plugin {
     private static final String TAG = "PrinterPlugin";
     private static final String PRINTER_PACKAGE = "com.bld.settings.print";
 
-    private static final int QR_SIZE = 180;
+    private static final int QR_SIZE = 250;
     private static final int FINAL_FEED_LINES = 4;
     private static final int QR_TEST_FINAL_FEED_LINES = 2;
 
@@ -40,7 +40,7 @@ public class BusPrinterPlugin extends Plugin {
     private static final int IMAGE_ALIGN = 2;
 
     private static final int TEXT_SIZE = 3;
-    private static final int TITLE_TEXT_SIZE = 5;
+    private static final int TITLE_TEXT_SIZE = 6;
 
     private static final String QR_INFO_TEXT = "SCAN TO VIEW LIVE LOCATION AND RATE YOUR TRIP";
     private static final String SCAN_ME_TEXT = "SCAN ME!";
@@ -396,7 +396,7 @@ public class BusPrinterPlugin extends Plugin {
         }
 
         for (int i = 0; i < lines.size(); i++) {
-            String cleanLine = clean(lines.get(i));
+            String cleanLine = clean(lines.get(i)) + "\n";
             if (cleanLine.isEmpty()) {
                 continue;
             }
@@ -407,8 +407,8 @@ public class BusPrinterPlugin extends Plugin {
                 addTextMethod.invoke(printManager, CENTER_ALIGN, TEXT_SIZE, false, false, cleanLine);
             }
         }
-
         tryAddLineFeed(printManagerClass, printManager, 1);
+
     }
 
     private void printFooterLines(Class<?> printManagerClass, Object printManager, Method addTextMethod,
